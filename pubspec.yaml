@@ -41,6 +41,7 @@ dependencies:
   cloud_firestore: ^4.4.5
   firebase_core: ^2.8.0
   like_button: ^2.0.5
+  google_fonts: ^4.0.4
 
 dev_dependencies:
   flutter_test:
@@ -65,8 +66,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/
+  # assets:
+    # - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -80,7 +81,7 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   # fonts:
-  #   - family: Schyler
+    # - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf

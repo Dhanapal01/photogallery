@@ -3,6 +3,7 @@ import 'package:photogalery/pages/create.dart';
 import '../model/text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +28,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Photo Galery',
         theme: ThemeData(
-          primarySwatch: Colors.green,
+          appBarTheme: AppBarTheme(color: Color.fromARGB(74, 76, 80, 1)),
         ),
         debugShowCheckedModeBanner: false,
-        home: createpage());
+        home: const createpage());
   }
 }
 
@@ -49,15 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [
-          IconButton(
-              onPressed: () {},
-              icon: Icon(
-                Icons.filter_list,
-                color: Colors.white,
-              )),
-          IconButton(onPressed: () {}, icon: Icon(Icons.sort))
-        ],
       ),
       body: Center(
         child: Column(
