@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Photo Galery',
         theme: ThemeData(
-          appBarTheme: AppBarTheme(color: Color.fromARGB(74, 76, 80, 1)),
+          appBarTheme: AppBarTheme(color: Color.fromRGBO(74, 76, 80, 1)),
         ),
         debugShowCheckedModeBanner: false,
         home: const createpage());
