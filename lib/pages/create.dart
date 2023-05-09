@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photogalery/pages/button/button.dart';
+import 'package:photogalery/pages/formfield.dart';
 
 import '../Serivce/firebase_attach.dart';
 import '../model/text.dart';
@@ -103,28 +105,9 @@ class _createpage extends State<createpage> {
                                     ),
                                     width: 148,
                                     height: 31,
-                                    child: TextFormField(
-                                        style: GoogleFonts.poppins(
-                                            textStyle: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w400)),
-                                        autofocus: true,
+                                    child: formfield(
                                         controller: _namecontroller,
-                                        validator: ((value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return 'This field is required';
-                                          }
-                                        }),
-                                        decoration: InputDecoration(
-                                            hintText: "Enter Text",
-                                            hintStyle: GoogleFonts.poppins(
-                                                textStyle: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight:
-                                                        FontWeight.w400)),
-                                            contentPadding: EdgeInsets.all(10),
-                                            border: OutlineInputBorder())))),
+                                        hinttext: 'Enter Text')))
                           ]),
                           TableRow(children: <Widget>[
                             Container(
@@ -141,27 +124,9 @@ class _createpage extends State<createpage> {
                                   width: 148,
                                   height: 31,
                                   child: Center(
-                                      child: TextFormField(
-                                          style:
-                                              GoogleFonts.poppins(fontSize: 10),
+                                      child: formfield(
                                           controller: _photoURLcontroller,
-                                          validator: ((value) {
-                                            if (value == null ||
-                                                value.trim().isEmpty) {
-                                              return 'This field is required';
-                                            }
-                                          }),
-                                          decoration: InputDecoration(
-                                              hintText: "Enter Text",
-                                              hintStyle: GoogleFonts.poppins(
-                                                textStyle: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              border: OutlineInputBorder())))),
+                                          hinttext: 'Enter Text'))),
                             )
                           ]),
                           TableRow(children: <Widget>[
@@ -180,26 +145,9 @@ class _createpage extends State<createpage> {
                                   height: 31,
                                   width: 148,
                                   child: Center(
-                                      child: TextFormField(
-                                          style:
-                                              GoogleFonts.poppins(fontSize: 10),
+                                      child: formfield(
                                           controller: _descriptioncontroller,
-                                          validator: ((value) {
-                                            if (value == null ||
-                                                value.trim().isEmpty) {
-                                              return 'This field is required';
-                                            }
-                                          }),
-                                          decoration: InputDecoration(
-                                              hintText: "Enter Text",
-                                              hintStyle: GoogleFonts.poppins(
-                                                  textStyle: TextStyle(
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.w400)),
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              border: OutlineInputBorder())))),
+                                          hinttext: 'Enter Text'))),
                             )
                           ]),
                           TableRow(
@@ -210,24 +158,11 @@ class _createpage extends State<createpage> {
                                       height: 36.43,
                                       margin: const EdgeInsets.only(
                                           top: 35, left: 38, right: 10),
-                                      child: ElevatedButton(
-                                          style: const ButtonStyle(
-                                              iconSize:
-                                                  MaterialStatePropertyAll(10),
-                                              backgroundColor:
-                                                  MaterialStatePropertyAll(
-                                                      Colors.orange)),
-                                          onPressed: () => Navigator.pop(
-                                                context,
-                                              ),
-                                          child: Container(
-                                            child: Text(
-                                              'CANCEL',
-                                              style: GoogleFonts.poppins(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w800),
-                                            ),
-                                          )))),
+                                      child: CustomButton(
+                                          title: "CANCEL",
+                                          onpressed: () async {
+                                            Navigator.pop(context);
+                                          }))),
                               TableCell(
                                 child: Center(
                                   child: Container(
@@ -237,22 +172,9 @@ class _createpage extends State<createpage> {
                                       top: 35,
                                       right: 38.45,
                                     ),
-                                    child: ElevatedButton(
-                                        style: const ButtonStyle(
-                                            iconSize:
-                                                MaterialStatePropertyAll(10),
-                                            backgroundColor:
-                                                MaterialStatePropertyAll(
-                                                    Colors.orange)),
-                                        child: Container(
-                                          child: Text(
-                                            'ADD',
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w800),
-                                          ),
-                                        ),
-                                        onPressed: () async {
+                                    child: CustomButton(
+                                        title: "ADD",
+                                        onpressed: () async {
                                           final String name =
                                               _namecontroller.text;
                                           final String photoURL =
@@ -367,6 +289,7 @@ class _createpage extends State<createpage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          scrolledUnderElevation: 2,
           title: Text(
             'Photo Gallery',
             style: GoogleFonts.poppins(color: Colors.white),
@@ -385,144 +308,132 @@ class _createpage extends State<createpage> {
             stream: _collection.snapshots(),
             builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
               if (streamSnapshot.hasData) {
-                return Container(
-                    padding: const EdgeInsets.all(25.0),
-                    decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                return SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
                     child: Container(
-                        decoration: const BoxDecoration(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(50))),
-                        child: GridView.builder(
-                            padding: const EdgeInsets.all(25.0),
-                            itemCount: streamSnapshot.data!.docs.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 40,
-                              mainAxisSpacing: 40.0,
-                            ),
-                            itemBuilder: (
-                              context,
-                              index,
-                            ) {
-                              DocumentSnapshot documentSnapshot =
-                                  streamSnapshot.data!.docs[index];
-                              Timestamp t =
-                                  documentSnapshot['CreatedTime'] as Timestamp;
-                              DateTime date = t.toDate();
+                        alignment: Alignment.topCenter,
+                        margin: EdgeInsets.all(25),
+                        child: Wrap(
+                          runSpacing: 20,
+                          spacing: 20,
+                          children:
+                              streamSnapshot.data!.docs.map((documentSnapshot) {
+                            Timestamp t =
+                                documentSnapshot['CreatedTime'] as Timestamp;
+                            DateTime date = t.toDate();
 
-                              return Container(
-                                height: 200,
-                                width: 200,
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: <Widget>[
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(12)),
-                                      child: Image.network(
-                                        documentSnapshot['photoURL'],
-                                        fit: BoxFit.cover,
-                                      ),
+                            return Container(
+                              height: 200,
+                              width: 200,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: <Widget>[
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(12)),
+                                    child: Image.network(
+                                      documentSnapshot['photoURL'],
+                                      fit: BoxFit.cover,
                                     ),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Center(
+                                  ),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Center(
+                                      child: Container(
+                                        alignment: Alignment.bottomCenter,
                                         child: Container(
-                                          alignment: Alignment.bottomCenter,
-                                          child: Container(
-                                            height: 52,
-                                            padding: const EdgeInsets.only(
-                                                bottom: 200),
-                                            color: Colors.transparent
-                                                .withOpacity(0.5),
-                                          ),
+                                          height: 52,
+                                          padding: const EdgeInsets.only(
+                                              bottom: 200),
+                                          color: Colors.transparent
+                                              .withOpacity(0.5),
                                         ),
                                       ),
                                     ),
-                                    Container(
-                                      margin: const EdgeInsets.only(
-                                          right: 9.09, bottom: 8),
-                                      alignment: Alignment.bottomRight,
-                                      child: Text(
-                                        "-by " +
-                                            documentSnapshot[
-                                                "Photographername"],
-                                        // ignore: prefer_const_constructors
-                                        style: GoogleFonts.poppins(
-                                          textStyle: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.only(
+                                        right: 9.09, bottom: 8),
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(
+                                      "-by " +
+                                          documentSnapshot["Photographername"],
+                                      // ignore: prefer_const_constructors
+                                      style: GoogleFonts.poppins(
+                                        textStyle: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ),
-                                    Container(
-                                        padding: const EdgeInsets.only(
-                                            bottom: 28.85, left: 9),
-                                        alignment: Alignment.bottomLeft,
-                                        child: Text(
-                                          documentSnapshot['Description'],
-                                          // ignore: prefer_const_constructors
-                                          style: GoogleFonts.poppins(
-                                              textStyle: const TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w400),
-                                              color: Colors.white),
-                                        )),
-                                    Container(
-                                        margin: const EdgeInsets.only(
-                                            top: 16, right: 12),
-                                        constraints: BoxConstraints(
-                                          minHeight: 36,
-                                        ),
-                                        alignment: Alignment.topRight,
-                                        child: IconButton(
-                                          onPressed: () =>
-                                              _deletephoto(documentSnapshot.id),
-                                          icon: const Icon(
-                                            Icons.delete_rounded,
-                                            color: Colors.redAccent,
-                                            size: 40,
-                                          ),
-                                        )),
-                                    Container(
-                                      alignment: Alignment.bottomLeft,
+                                  ),
+                                  Container(
                                       padding: const EdgeInsets.only(
-                                          bottom: 11, left: 9),
+                                          bottom: 28.85, left: 9),
+                                      alignment: Alignment.bottomLeft,
                                       child: Text(
-                                        '${date.day} ${_numbertomonthmap[date.month]} ${date.year}',
+                                        documentSnapshot['Description'],
+                                        // ignore: prefer_const_constructors
                                         style: GoogleFonts.poppins(
                                             textStyle: const TextStyle(
                                                 fontSize: 10,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w400)),
+                                                fontWeight: FontWeight.w400),
+                                            color: Colors.white),
+                                      )),
+                                  Container(
+                                      margin: const EdgeInsets.only(
+                                          top: 16, right: 12),
+                                      constraints: BoxConstraints(
+                                        minHeight: 36,
                                       ),
-                                    ),
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      padding: const EdgeInsets.only(
-                                          top: 16.44, left: 14.44),
+                                      alignment: Alignment.topRight,
                                       child: IconButton(
-                                          constraints:
-                                              BoxConstraints(minHeight: 36.67),
-                                          onPressed: () =>
-                                              _update(documentSnapshot),
-                                          icon: Icon(
-                                            documentSnapshot["Isliked"]
-                                                ? Icons.favorite
-                                                : Icons
-                                                    .favorite_border_outlined,
-                                            color: Colors.redAccent,
-                                            size: 40,
-                                          )),
+                                        onPressed: () =>
+                                            _deletephoto(documentSnapshot.id),
+                                        icon: const Icon(
+                                          Icons.delete_rounded,
+                                          color: Colors.redAccent,
+                                          size: 40,
+                                        ),
+                                      )),
+                                  Container(
+                                    alignment: Alignment.bottomLeft,
+                                    padding: const EdgeInsets.only(
+                                        bottom: 11, left: 9),
+                                    child: Text(
+                                      '${date.day} ${_numbertomonthmap[date.month]} ${date.year}',
+                                      style: GoogleFonts.poppins(
+                                          textStyle: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w400)),
                                     ),
-                                  ],
-                                ),
-                              );
-                            })));
+                                  ),
+                                  Container(
+                                    alignment: Alignment.topLeft,
+                                    padding: const EdgeInsets.only(
+                                        top: 16.44, left: 14.44),
+                                    child: IconButton(
+                                        constraints:
+                                            BoxConstraints(minHeight: 36.67),
+                                        onPressed: () =>
+                                            _update(documentSnapshot),
+                                        icon: Icon(
+                                          documentSnapshot["Isliked"]
+                                              ? Icons.favorite
+                                              : Icons.favorite,
+                                          color: documentSnapshot['Isliked']
+                                              ? Colors.redAccent
+                                              : Colors.white,
+                                          size: 40,
+                                        )),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        )));
               }
 
               return const Center(
