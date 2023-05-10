@@ -1,16 +1,18 @@
 import 'dart:math';
-
+import 'package:photogalery/pages/address.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photogalery/pages/button/button.dart';
+import 'package:photogalery/pages/card.dart';
 import 'package:photogalery/pages/formfield.dart';
 
+import 'package:intl/intl.dart';
 import '../Serivce/firebase_attach.dart';
-import '../model/text.dart';
+
 import 'package:like_button/like_button.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:photogalery/Serivce/firebase_attach.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class createpage extends StatefulWidget {
@@ -24,7 +26,7 @@ class createpage extends StatefulWidget {
 
 class _createpage extends State<createpage> {
   late DocumentReference likesref;
-
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   late String uid;
   final CollectionReference _collection =
       FirebaseFirestore.instance.collection('AppGallery');
@@ -237,52 +239,55 @@ class _createpage extends State<createpage> {
         context: context,
         builder: (context) {
           return Center(
-              child: Container(
-                  padding: const EdgeInsets.all(15),
-                  child: Center(
-                      child: AlertDialog(
-                    title: const Center(
-                        child: Text(
-                      "Confirm",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                    )),
-                    content: Container(
-                      margin: const EdgeInsets.all(20),
-                      child: const Text(
-                          "Sure you want to delete the selected photo?"),
-                    ),
-                    actions: [
-                      TextButton(
-                          onPressed: () async {
+              child: Center(
+                  child: AlertDialog(
+            contentPadding: EdgeInsets.all(8),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12))),
+            title: Center(
+                child: Text("Confirm",
+                    style: GoogleFonts.poppins(
+                        fontSize: 14, fontWeight: FontWeight.w500))),
+            content: Container(
+              width: 300,
+              margin: const EdgeInsets.all(14),
+              child: Text("Sure you want to delete the selected photo?",
+                  style: GoogleFonts.poppins(
+                      fontSize: 14, fontWeight: FontWeight.w500)),
+            ),
+            actions: [
+              Container(
+                margin: EdgeInsets.all(20),
+                child: Table(columnWidths: const <int, TableColumnWidth>{
+                  0: FlexColumnWidth(),
+                }, children: <TableRow>[
+                  TableRow(children: <Widget>[
+                    Container(
+                        height: 36.43,
+                        padding: EdgeInsets.only(top: 10, left: 15, right: 12),
+                        child: CustomButton(
+                          onpressed: () => Navigator.pop(context),
+                          title: 'CANCEL',
+                        )),
+                    TableCell(
+                      child: Container(
+                        margin: EdgeInsets.only(top: 10, right: 15),
+                        child: CustomButton(
+                          title: 'DELETE',
+                          onpressed: () async {
                             await _collection.doc(AppGalleryid).delete();
                             Navigator.pop(context);
                           },
-                          child: const Text("DELETE")),
-                      TextButton(
-                          onPressed: () async {
-                            Navigator.pop(context);
-                          },
-                          child: const Text("CANCEL"))
-                    ],
-                  ))));
+                        ),
+                      ),
+                    )
+                  ])
+                ]),
+              ),
+            ],
+          )));
         });
   }
-
-  final _numbertomonthmap = {
-    1: "Jan",
-    2: "Feb",
-    3: "March",
-    4: "April",
-    5: "May",
-    6: "June",
-    7: "July",
-    8: "August",
-    9: "Sep",
-    10: "Oct",
-    11: "Nov",
-    12: "Dec"
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -321,116 +326,21 @@ class _createpage extends State<createpage> {
                             Timestamp t =
                                 documentSnapshot['CreatedTime'] as Timestamp;
                             DateTime date = t.toDate();
+                            var formattedDate =
+                                DateFormat('dd MMMM, yyyy').format(date);
+                            final AppGallery photo =
+                                AppGallery.fromDocumentSnapshot(documentSnapshot
+                                    as DocumentSnapshot<Map<String, dynamic>>);
 
-                            return Container(
-                              height: 200,
-                              width: 200,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: <Widget>[
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(12)),
-                                    child: Image.network(
-                                      documentSnapshot['photoURL'],
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Center(
-                                      child: Container(
-                                        alignment: Alignment.bottomCenter,
-                                        child: Container(
-                                          height: 52,
-                                          padding: const EdgeInsets.only(
-                                              bottom: 200),
-                                          color: Colors.transparent
-                                              .withOpacity(0.5),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                        right: 9.09, bottom: 8),
-                                    alignment: Alignment.bottomRight,
-                                    child: Text(
-                                      "-by " +
-                                          documentSnapshot["Photographername"],
-                                      // ignore: prefer_const_constructors
-                                      style: GoogleFonts.poppins(
-                                        textStyle: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                      padding: const EdgeInsets.only(
-                                          bottom: 28.85, left: 9),
-                                      alignment: Alignment.bottomLeft,
-                                      child: Text(
-                                        documentSnapshot['Description'],
-                                        // ignore: prefer_const_constructors
-                                        style: GoogleFonts.poppins(
-                                            textStyle: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w400),
-                                            color: Colors.white),
-                                      )),
-                                  Container(
-                                      margin: const EdgeInsets.only(
-                                          top: 16, right: 12),
-                                      constraints: BoxConstraints(
-                                        minHeight: 36,
-                                      ),
-                                      alignment: Alignment.topRight,
-                                      child: IconButton(
-                                        onPressed: () =>
-                                            _deletephoto(documentSnapshot.id),
-                                        icon: const Icon(
-                                          Icons.delete_rounded,
-                                          color: Colors.redAccent,
-                                          size: 40,
-                                        ),
-                                      )),
-                                  Container(
-                                    alignment: Alignment.bottomLeft,
-                                    padding: const EdgeInsets.only(
-                                        bottom: 11, left: 9),
-                                    child: Text(
-                                      '${date.day} ${_numbertomonthmap[date.month]} ${date.year}',
-                                      style: GoogleFonts.poppins(
-                                          textStyle: const TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w400)),
-                                    ),
-                                  ),
-                                  Container(
-                                    alignment: Alignment.topLeft,
-                                    padding: const EdgeInsets.only(
-                                        top: 16.44, left: 14.44),
-                                    child: IconButton(
-                                        constraints:
-                                            BoxConstraints(minHeight: 36.67),
-                                        onPressed: () =>
-                                            _update(documentSnapshot),
-                                        icon: Icon(
-                                          documentSnapshot["Isliked"]
-                                              ? Icons.favorite
-                                              : Icons.favorite,
-                                          color: documentSnapshot['Isliked']
-                                              ? Colors.redAccent
-                                              : Colors.white,
-                                          size: 40,
-                                        )),
-                                  ),
-                                ],
-                              ),
+                            return IMAGEWidget(
+                              photogallery: photo,
+                              Ondeletepressed: () => _deletephoto,
+                              Onlikepressed: () => _update,
+                              imageheight: 200,
+                              imagewidth: 200,
+                              imagefit: StackFit.expand,
+                              boxfit: BoxFit.cover,
+                              formatetime: '$formattedDate',
                             );
                           }).toList(),
                         )));

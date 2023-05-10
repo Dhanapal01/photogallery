@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photogalery/pages/create.dart';
-import '../model/text.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
