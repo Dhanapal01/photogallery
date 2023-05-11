@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photogalery/pages/button/button_widget.dart';
-
 import 'address_page.dart';
-import 'package:full_screen_image_null_safe/full_screen_image_null_safe.dart';
 
 class ImageWidget extends StatefulWidget {
   const ImageWidget({super.key});
