@@ -21,8 +21,8 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
-  final CollectionReference _collection =
-      FirebaseFirestore.instance.collection('AppGallery');
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _collection;
+  List<String> items = <String>['CreatedTime', 'PhotographerName', 'Isliked'];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _photoURLController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -32,6 +32,8 @@ class _CreatePage extends State<CreatePage> {
   @override
   void initState() {
     super.initState();
+    _collection =
+        FirebaseFirestore.instance.collection('AppGallery').snapshots();
   }
 
   Future<void> _create([DocumentSnapshot? documentSnapshot]) async {
@@ -180,7 +182,9 @@ class _CreatePage extends State<CreatePage> {
                                         bool isLiked = false;
                                         if (formkey.currentState!.validate()) {
                                           if (action == 'create') {
-                                            await _collection.add({
+                                            await FirebaseFirestore.instance
+                                                .collection('AppGallery')
+                                                .add({
                                               "Photographername":
                                                   name.toUpperCase(),
                                               "photoURL": photoURL,
@@ -282,6 +286,8 @@ class _CreatePage extends State<CreatePage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+
+    String? _dropdownValue = 'CreatedTime';
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -297,22 +303,24 @@ class _CreatePage extends State<CreatePage> {
                   Icons.filter_list,
                   color: Colors.white,
                 )),
-            IconButton(
-                onPressed: () async {
-                  showDialog(
-                      useSafeArea: true,
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          content: Container(width: width, height: height),
-                        );
-                      });
-                },
-                icon: const Icon(Icons.sort))
+            Container(
+                child: PopupMenuButton(
+              itemBuilder: (context) {
+                return items
+                    .map((e) => PopupMenuItem<String>(value: e, child: Text(e)))
+                    .toList();
+              },
+              onSelected: (value) {
+                if (value == 'CreatedTime') {
+                  Navigator.pop(context);
+                }
+              },
+              icon: Icon(Icons.sort),
+            ))
           ],
         ),
         body: StreamBuilder(
-            stream: _collection.snapshots(),
+            stream: _collection,
             builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
               if (streamSnapshot.hasData) {
                 return SingleChildScrollView(
