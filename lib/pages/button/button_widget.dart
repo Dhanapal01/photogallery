@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-@immutable
+
 class CustomButton extends StatefulWidget {
   CustomButton({
     super.key,
     required this.title,
-    required this.textcolor,
+    this.textColor,
     required this.onPressed,
-    th
   });
 
   final String title;
- final Color textcolor;
+  Color? textColor;
 
- 
+  TextStyle titleStyle = GoogleFonts.poppins(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+  );
 
   final Function() onPressed;
 
@@ -22,20 +24,15 @@ class CustomButton extends StatefulWidget {
 }
 
 class _CustomButtonState extends State<CustomButton> {
-  titlestyle = GoogleFonts.poppins(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-  );
   @override
   Widget build(BuildContext context) {
-    
     return ElevatedButton(
         style: const ButtonStyle(
             backgroundColor: MaterialStatePropertyAll(Colors.orange)),
         onPressed: widget.onPressed,
         child: Text(
           widget.title,
-          style: widget.titlestyle,
+          style: widget.titleStyle,
         ));
   }
 }

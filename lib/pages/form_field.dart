@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-class formfield extends StatelessWidget {
-  formfield(
+class FormfieldPage extends StatelessWidget {
+  FormfieldPage(
       {super.key,
-      this.txtstyle,
+      this.txtStyle,
       required this.controller,
       this.validator,
       required this.hinttext});
 
-  TextStyle? txtstyle;
+  TextStyle? txtStyle;
   final String hinttext;
   final TextEditingController controller;
   final Function()? validator;
 
   @override
   Widget build(BuildContext context) {
-    txtstyle = GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w400);
+    txtStyle = GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w400);
 
     return TextFormField(
-      style: txtstyle,
+      style: txtStyle,
       controller: controller,
       autofocus: true,
       validator: ((value) {
@@ -30,8 +30,8 @@ class formfield extends StatelessWidget {
       }),
       decoration: InputDecoration(
           hintText: hinttext,
-          hintStyle: txtstyle,
-          contentPadding: EdgeInsets.all(10),
+          hintStyle: txtStyle,
+          contentPadding: const EdgeInsets.all(10),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(1))),
     );
   }

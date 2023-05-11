@@ -1,21 +1,13 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'dart:math';
-import 'package:photogalery/pages/address_page.dart';
+import '../pages/address_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:photogalery/pages/button/button_widget.dart';
-import 'package:photogalery/pages/card.dart';
-import 'package:photogalery/pages/form_field.dart';
+import '../pages/button/button_widget.dart';
+import '../pages/card.dart';
+import '../pages/form_field.dart';
 
 import 'package:intl/intl.dart';
-import '../Serivce/firebase_attach.dart';
 
-import 'package:like_button/like_button.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:photogalery/Serivce/firebase_attach.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class CreatePage extends StatefulWidget {
   const CreatePage({super.key});
@@ -27,7 +19,6 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
-  late String uid;
   final CollectionReference _collection =
       FirebaseFirestore.instance.collection('AppGallery');
   final TextEditingController _nameController = TextEditingController();
@@ -50,7 +41,7 @@ class _CreatePage extends State<CreatePage> {
       _descriptionController.text = documentSnapshot['Description'];
       isLiked = documentSnapshot["Isliked"];
     }
-    final _formkey = GlobalKey<FormState>();
+    final formkey = GlobalKey<FormState>();
     Container(
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(30)),
       padding: const EdgeInsets.only(bottom: 267),
@@ -71,7 +62,7 @@ class _CreatePage extends State<CreatePage> {
                         fontSize: 14, fontWeight: FontWeight.w500)),
               )),
               content: Form(
-                key: _formkey,
+                key: formkey,
                 child: Container(
                   width: 326,
                   margin: const EdgeInsets.all(2),
@@ -104,7 +95,7 @@ class _CreatePage extends State<CreatePage> {
                                   ),
                                   width: 148,
                                   height: 31,
-                                  child: formfield(
+                                  child: FormfieldPage(
                                       controller: _nameController,
                                       hinttext: 'Enter Text')))
                         ]),
@@ -124,7 +115,7 @@ class _CreatePage extends State<CreatePage> {
                                 width: 148,
                                 height: 31,
                                 child: Center(
-                                    child: formfield(
+                                    child: FormfieldPage(
                                         controller: _photoURLController,
                                         hinttext: 'Enter Text'))),
                           )
@@ -146,7 +137,7 @@ class _CreatePage extends State<CreatePage> {
                                 height: 31,
                                 width: 148,
                                 child: Center(
-                                    child: formfield(
+                                    child: FormfieldPage(
                                         controller: _descriptionController,
                                         hinttext: 'Enter Text'))),
                           )
@@ -185,7 +176,7 @@ class _CreatePage extends State<CreatePage> {
 
                                         DateTime date = t.toDate();
                                         bool isLiked = false;
-                                        if (_formkey.currentState!.validate()) {
+                                        if (formkey.currentState!.validate()) {
                                           if (action == 'create') {
                                             await _collection.add({
                                               "Photographername":
@@ -322,7 +313,7 @@ class _CreatePage extends State<CreatePage> {
                             Timestamp t =
                                 documentSnapshot['CreatedTime'] as Timestamp;
                             DateTime date = t.toDate();
-                            var formattedDate =
+                            var Formateddate =
                                 DateFormat('dd MMMM, yyyy').format(date);
                             final AppGallery photo =
                                 AppGallery.fromDocumentSnapshot(documentSnapshot
@@ -336,7 +327,7 @@ class _CreatePage extends State<CreatePage> {
                               imageWidth: 200,
                               imageFit: StackFit.expand,
                               boxFit: BoxFit.cover,
-                              formatTime: '$formattedDate',
+                              formatTime: Formateddate,
                             );
                           }).toList(),
                         )));
