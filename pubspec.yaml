@@ -44,6 +44,7 @@ dependencies:
   google_fonts: ^4.0.4
   intl: ^0.18.1
   jiffy: ^6.1.0
+  full_screen_image_null_safe: ^2.0.0
 
 dev_dependencies:
   flutter_test:

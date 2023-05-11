@@ -1,7 +1,9 @@
+import 'dart:html';
+
 import '../pages/address_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
-import '../pages/card.dart';
+import 'card_page.dart';
 import '../pages/form_field.dart';
 
 import 'package:intl/intl.dart';
@@ -278,6 +280,8 @@ class _CreatePage extends State<CreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -293,7 +297,18 @@ class _CreatePage extends State<CreatePage> {
                   Icons.filter_list,
                   color: Colors.white,
                 )),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.sort))
+            IconButton(
+                onPressed: () async {
+                  showDialog(
+                      useSafeArea: true,
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: Container(width: width, height: height),
+                        );
+                      });
+                },
+                icon: const Icon(Icons.sort))
           ],
         ),
         body: StreamBuilder(
