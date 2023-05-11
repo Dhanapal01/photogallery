@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
-import 'package:photogalery/pages/formfield.dart';
 
-import 'address.dart';
+import 'address_page.dart';
 
 class ImageWidget extends StatefulWidget {
   const ImageWidget({super.key});
@@ -22,54 +18,54 @@ class _ImageWidgetState extends State<ImageWidget> {
   }
 }
 
-class IMAGEWidget extends StatefulWidget {
-  final double imageheight;
-  final double imagewidth;
-  final StackFit imagefit;
-  TextStyle? photographertext = GoogleFonts.poppins(
+class CardWidget extends StatefulWidget {
+  final double imageHeight;
+  final double imageWidth;
+  final StackFit imageFit;
+  TextStyle? photographerText = GoogleFonts.poppins(
       fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white);
 
-  final Function Ondeletepressed;
-  final Function Onlikepressed;
-  TextStyle? txtstyle = GoogleFonts.poppins(
+  final Function onDeletePressed;
+  final Function onLikePressed;
+  TextStyle? txtStyle = GoogleFonts.poppins(
       fontSize: 10, fontWeight: FontWeight.w400, color: Colors.white);
 
-  final AppGallery photogallery;
+  final AppGallery photoGallery;
 
-  final BoxFit boxfit;
+  final BoxFit boxFit;
 
-  final String formatetime;
+  final String formatTime;
 
-  IMAGEWidget({
+  CardWidget({
     super.key,
-    required this.Ondeletepressed,
-    required this.Onlikepressed,
-    required this.imageheight,
-    required this.imagewidth,
-    required this.imagefit,
-    required this.boxfit,
-    required this.formatetime,
-    required this.photogallery,
+    required this.onDeletePressed,
+    required this.onLikePressed,
+    required this.imageHeight,
+    required this.imageWidth,
+    required this.imageFit,
+    required this.boxFit,
+    required this.formatTime,
+    required this.photoGallery,
   });
 
   @override
-  State<IMAGEWidget> createState() => _IMAGEWidgetState();
+  State<CardWidget> createState() => _CardWidgetState();
 }
 
-class _IMAGEWidgetState extends State<IMAGEWidget> {
+class _CardWidgetState extends State<CardWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.imageheight,
-      width: widget.imagewidth,
+      height: widget.imageHeight,
+      width: widget.imageWidth,
       child: Stack(
-        fit: widget.imagefit,
+        fit: widget.imageFit,
         children: <Widget>[
           ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
             child: Image.network(
-              widget.photogallery.PhotoURL,
-              fit: widget.boxfit,
+              widget.photoGallery.photoURL,
+              fit: widget.boxFit,
             ),
           ),
           ClipRRect(
@@ -88,26 +84,26 @@ class _IMAGEWidgetState extends State<IMAGEWidget> {
           Container(
             margin: const EdgeInsets.only(right: 9.09, bottom: 8),
             alignment: Alignment.bottomRight,
-            child: Text("-by " + widget.photogallery.Photgraphername,
+            child: Text("-by ${widget.photoGallery.photgrapherName}",
                 // ignore: prefer_const_constructors
-                style: widget.photographertext),
+                style: widget.photographerText),
           ),
           Container(
               padding: const EdgeInsets.only(bottom: 28.85, left: 9),
               alignment: Alignment.bottomLeft,
               child: Text(
-                widget.photogallery.Description,
+                widget.photoGallery.description,
                 // ignore: prefer_const_constructors
-                style: widget.txtstyle,
+                style: widget.txtStyle,
               )),
           Container(
               margin: const EdgeInsets.only(top: 16, right: 12),
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 minHeight: 36,
               ),
               alignment: Alignment.topRight,
               child: IconButton(
-                onPressed: () => widget.photogallery,
+                onPressed: () => widget.onDeletePressed(widget.photoGallery),
                 icon: const Icon(
                   Icons.delete_rounded,
                   color: Colors.redAccent,
@@ -118,21 +114,19 @@ class _IMAGEWidgetState extends State<IMAGEWidget> {
             alignment: Alignment.bottomLeft,
             padding: const EdgeInsets.only(bottom: 11, left: 9),
             child: Text(
-              widget.formatetime,
-              style: widget.txtstyle,
+              widget.formatTime,
+              style: widget.txtStyle,
             ),
           ),
           Container(
             alignment: Alignment.topLeft,
             padding: const EdgeInsets.only(top: 16.44, left: 14.44),
             child: IconButton(
-                constraints: BoxConstraints(minHeight: 36.67),
-                onPressed: () {
-                  widget.Onlikepressed;
-                },
+                constraints: const BoxConstraints(minHeight: 36.67),
+                onPressed: () => widget.onLikePressed(widget.photoGallery),
                 icon: Icon(
-                  widget.photogallery.Isliked ? Icons.favorite : Icons.favorite,
-                  color: widget.photogallery.Isliked
+                  widget.photoGallery.isLiked ? Icons.favorite : Icons.favorite,
+                  color: widget.photoGallery.isLiked
                       ? Colors.redAccent
                       : Colors.white,
                   size: 40,
