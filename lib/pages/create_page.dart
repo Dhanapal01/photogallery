@@ -1,5 +1,6 @@
-import 'dart:html';
-
+import 'dart:js_util';
+import 'dart:math';
+import 'package:collection/collection.dart';
 import '../pages/address_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
@@ -27,6 +28,8 @@ class _CreatePage extends State<CreatePage> {
     UserInput.CreatedTime,
     UserInput.Isliked,
   ];
+  List<String> item1 = <String>[SelectedList.liked, SelectedList.unLiked];
+  List<String> filterList = [];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _photoURLController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -301,6 +304,7 @@ class _CreatePage extends State<CreatePage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    const all = true;
 
     String? dropDownValue = UserInput.Photographername;
     return SafeArea(
@@ -312,19 +316,6 @@ class _CreatePage extends State<CreatePage> {
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           actions: [
-            PopupMenuButton(
-                itemBuilder: (context) {
-                  return items
-                      .map((e) => PopupMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ))
-                      .toList();
-                },
-                icon: const Icon(
-                  Icons.filter_list,
-                  color: Colors.white,
-                )),
             PopupMenuButton(
               itemBuilder: (context) {
                 return items
@@ -358,6 +349,83 @@ class _CreatePage extends State<CreatePage> {
                 }
               },
               icon: const Icon(Icons.sort),
+            ),
+            Column(
+              children: [
+                Center(child: StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setState1) {
+                  Function deepEq = const DeepCollectionEquality().equals;
+                  return Center(
+                    child: PopupMenuButton(
+                        icon: Icon(Icons.filter_list),
+                        itemBuilder: (context) {
+                          return [
+                            PopupMenuItem(
+                                value: item1,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      child: Checkbox(
+                                          value: deepEq(filterList, item1),
+                                          onChanged: (bool? val) {
+                                            if (val == null) {
+                                              return;
+                                            }
+                                            if (val) {
+                                              for (var i = 0;
+                                                  i < item1.length;
+                                                  i++) {
+                                                print(item1[i]);
+                                                filterList.add(item1[i]);
+                                              }
+                                              print(deepEq(filterList, item1));
+                                            } else {
+                                              print("dkjdfdjf");
+                                              filterList.remove(item1);
+                                            }
+
+                                            setState(() {});
+                                            setState1(() {});
+                                          }),
+                                    ),
+                                    Container(
+                                      child: Text('all'),
+                                    )
+                                  ],
+                                )),
+                            ...item1
+                                .map((e) => PopupMenuItem(
+                                    value: e,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          child: Checkbox(
+                                              value: filterList.contains(e),
+                                              onChanged: (bool? val) {
+                                                if (val == null) {
+                                                  return;
+                                                }
+                                                if (val) {
+                                                  filterList.add(e);
+                                                } else {
+                                                  filterList.remove(e);
+                                                }
+
+                                                setState1(() {});
+                                                setState(() {});
+                                              }),
+                                        ),
+                                        Container(
+                                          child: Text(e),
+                                        )
+                                      ],
+                                    )))
+                                .toList()
+                          ];
+                        }),
+                  );
+                }))
+              ],
             )
           ],
         ),

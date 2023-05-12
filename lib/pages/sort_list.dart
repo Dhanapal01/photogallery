@@ -3,3 +3,9 @@ class UserInput {
   static String CreatedTime = 'CreatedTime';
   static String Isliked = 'Isliked';
 }
+
+class SelectedList {
+  static String all = 'all';
+  static String liked = 'liked';
+  static String unLiked = 'unLiked';
+}
