@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
 import 'card_page.dart';
 import '../pages/form_field.dart';
-
+import '../pages/sort_list.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
@@ -22,7 +22,11 @@ class CreatePage extends StatefulWidget {
 
 class _CreatePage extends State<CreatePage> {
   late Stream<QuerySnapshot<Map<String, dynamic>>> _collection;
-  List<String> items = <String>['CreatedTime', 'PhotographerName', 'Isliked'];
+  List<String> items = <String>[
+    UserInput.Photographername,
+    UserInput.CreatedTime,
+    UserInput.Isliked,
+  ];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _photoURLController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -220,6 +224,17 @@ class _CreatePage extends State<CreatePage> {
     );
   }
 
+  List name = [];
+  void sortFromFirebase(String query) async {
+    final result = await FirebaseFirestore.instance
+        .collection('AppGallery')
+        .orderBy('Photographername', descending: true)
+        .get();
+    setState(() {
+      name = result.docs.map((e) => e.data()).toList();
+    });
+  }
+
   Future<void> _update(AppGallery appGallery) async {
     appGallery.ref.update({'Isliked': !appGallery.isLiked});
   }
@@ -287,7 +302,7 @@ class _CreatePage extends State<CreatePage> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
-    String? _dropdownValue = 'CreatedTime';
+    String? dropDownValue = UserInput.Photographername;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -297,26 +312,53 @@ class _CreatePage extends State<CreatePage> {
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           actions: [
-            IconButton(
-                onPressed: () {},
+            PopupMenuButton(
+                itemBuilder: (context) {
+                  return items
+                      .map((e) => PopupMenuItem(
+                            value: e,
+                            child: Text(e),
+                          ))
+                      .toList();
+                },
                 icon: const Icon(
                   Icons.filter_list,
                   color: Colors.white,
                 )),
-            Container(
-                child: PopupMenuButton(
+            PopupMenuButton(
               itemBuilder: (context) {
                 return items
                     .map((e) => PopupMenuItem<String>(value: e, child: Text(e)))
                     .toList();
               },
+              initialValue: dropDownValue,
               onSelected: (value) {
-                if (value == 'CreatedTime') {
-                  Navigator.pop(context);
+                if (value == dropDownValue) {
+                  _collection = FirebaseFirestore.instance
+                      .collection("AppGallery")
+                      .orderBy(
+                        "Photographername",
+                      )
+                      .snapshots();
+                  setState(() {});
+                }
+                if (value == UserInput.CreatedTime) {
+                  _collection = FirebaseFirestore.instance
+                      .collection("AppGallery")
+                      .orderBy("CreatedTime")
+                      .snapshots();
+                  setState(() {});
+                }
+                if (value == UserInput.Isliked) {
+                  _collection = FirebaseFirestore.instance
+                      .collection("AppGallery")
+                      .orderBy("Isliked", descending: true)
+                      .snapshots();
+                  setState(() {});
                 }
               },
-              icon: Icon(Icons.sort),
-            ))
+              icon: const Icon(Icons.sort),
+            )
           ],
         ),
         body: StreamBuilder(
