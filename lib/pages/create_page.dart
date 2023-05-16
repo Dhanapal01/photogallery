@@ -28,7 +28,7 @@ class _CreatePage extends State<CreatePage> {
     UserInput.CreatedTime,
     UserInput.Isliked,
   ];
-  List<String> item1 = <String>[SelectedList.liked, SelectedList.unLiked];
+  List<String> item1 = (<String>[SelectedList.liked, SelectedList.unLiked]);
   List<String> filterList = [];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _photoURLController = TextEditingController();
@@ -350,13 +350,52 @@ class _CreatePage extends State<CreatePage> {
               },
               icon: const Icon(Icons.sort),
             ),
-            Column(
-              children: [
-                Center(child: StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState1) {
+            PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == SelectedList.all) {
+                    for (var i = 0; i <= item1.length; i++) {
+                      if (filterList.contains(item1[i])) {
+                        filterList.remove(item1[i]);
+                        print(item1[i]);
+                      } else {
+                        for (var i = 0; i <= item1.length; i++) {
+                          filterList.add(item1[i]);
+                        }
+                      }
+                    }
+                  } else {
+                    if (filterList.contains(value)) {
+                      filterList.remove(value);
+                    } else {
+                      filterList.add(value);
+                    }
+                  }
+                },
+                icon: Icon(Icons.filter_list),
+                itemBuilder: ((context) {
                   Function deepEq = const DeepCollectionEquality().equals;
-                  return Center(
-                    child: PopupMenuButton(
+                  return <PopupMenuEntry<String>>[
+                    CheckedPopupMenuItem(
+                      checked: deepEq(filterList, item1),
+                      value: SelectedList.all,
+                      child: Text(SelectedList.all),
+                    ),
+                    ...item1
+                        .map((e) => CheckedPopupMenuItem(
+                              checked: filterList.contains(e),
+                              value: e,
+                              child: Text(e),
+                            ))
+                        .toList()
+                  ];
+                })),
+            /*Column(
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: filterList,
+                  builder: (context, value, child) {
+                    Function deepEq = const DeepCollectionEquality().equals;
+                    return PopupMenuButton(
                         icon: Icon(Icons.filter_list),
                         itemBuilder: (context) {
                           return [
@@ -366,7 +405,7 @@ class _CreatePage extends State<CreatePage> {
                                   children: [
                                     Container(
                                       child: Checkbox(
-                                          value: deepEq(filterList, item1),
+                                          value: deepEq(value, item1),
                                           onChanged: (bool? val) {
                                             if (val == null) {
                                               return;
@@ -376,16 +415,18 @@ class _CreatePage extends State<CreatePage> {
                                                   i < item1.length;
                                                   i++) {
                                                 print(item1[i]);
-                                                filterList.add(item1[i]);
+                                                filterList.value.add(item1[i]);
                                               }
                                               print(deepEq(filterList, item1));
                                             } else {
-                                              print("dkjdfdjf");
-                                              filterList.remove(item1);
+                                              for (var i = 0;
+                                                  i < item1.length;
+                                                  i++) {
+                                                print(item1[i]);
+                                                filterList.value
+                                                    .remove(item1[i]);
+                                              }
                                             }
-
-                                            setState(() {});
-                                            setState1(() {});
                                           }),
                                     ),
                                     Container(
@@ -400,19 +441,16 @@ class _CreatePage extends State<CreatePage> {
                                       children: [
                                         Container(
                                           child: Checkbox(
-                                              value: filterList.contains(e),
+                                              value: value.contains(e),
                                               onChanged: (bool? val) {
                                                 if (val == null) {
                                                   return;
                                                 }
                                                 if (val) {
-                                                  filterList.add(e);
+                                                  filterList.value.add(e);
                                                 } else {
-                                                  filterList.remove(e);
+                                                  filterList.value.remove(e);
                                                 }
-
-                                                setState1(() {});
-                                                setState(() {});
                                               }),
                                         ),
                                         Container(
@@ -422,11 +460,11 @@ class _CreatePage extends State<CreatePage> {
                                     )))
                                 .toList()
                           ];
-                        }),
-                  );
-                }))
+                        });
+                  },
+                )
               ],
-            )
+            )*/
           ],
         ),
         body: StreamBuilder(
