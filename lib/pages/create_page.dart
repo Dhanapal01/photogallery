@@ -435,22 +435,18 @@ class _CreatePage extends State<CreatePage> {
                   } else {
                     if (filterList.contains(value)) {
                       filterList.remove(value);
-                      _collection = FirebaseFirestore.instance
-                          .collection("AppGallery")
-                          .where("Isliked", isEqualTo: value)
-                          .snapshots();
                       print("remove $value");
                     } else {
                       filterList.add(value);
                       print("add $value");
                       _collection = FirebaseFirestore.instance
                           .collection("AppGallery")
-                          .where(
-                            "Isliked",
-                            isEqualTo: true,
-                          )
+                          .where("Isliked",
+                              isEqualTo: true, isNotEqualTo: false)
                           .snapshots();
-                      setState(() {});
+                      setState(() {
+                        SelectedList.liked = SelectedList.liked!;
+                      });
                       print("add");
                     }
                   }
