@@ -54,9 +54,6 @@ class CardWidget extends StatefulWidget {
 class _CardWidgetState extends State<CardWidget> {
   @override
   Widget build(BuildContext context) {
-    bool checkboxValue1 = false;
-    bool checkboxValue2 = true;
-    bool checkboxValue3 = true;
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return GestureDetector(

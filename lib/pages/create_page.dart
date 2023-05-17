@@ -22,6 +22,9 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
+  final CollectionReference _collect =
+      FirebaseFirestore.instance.collection("AppGallery");
+
   late Stream<QuerySnapshot<Map<String, dynamic>>> _collection;
   List<String> items = <String>[
     UserInput.Photographername,
@@ -30,11 +33,13 @@ class _CreatePage extends State<CreatePage> {
   ];
   List<String> item1 = (<String>[SelectedList.liked, SelectedList.unLiked]);
   List<String> filterList = [];
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _photoURLController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   late Timestamp t = Timestamp.now();
   late bool isLiked = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -48,6 +53,7 @@ class _CreatePage extends State<CreatePage> {
     if (documentSnapshot != null) {
       action = 'update';
       _nameController.text = documentSnapshot['Photographername'];
+      print(_nameController);
       _photoURLController.text = documentSnapshot['photoURL'];
       _descriptionController.text = documentSnapshot['Description'];
       isLiked = documentSnapshot["Isliked"];
@@ -306,6 +312,8 @@ class _CreatePage extends State<CreatePage> {
     double height = MediaQuery.of(context).size.height;
     const all = true;
 
+    List<String> lists = [];
+
     String? dropDownValue = UserInput.Photographername;
     return SafeArea(
       child: Scaffold(
@@ -316,6 +324,54 @@ class _CreatePage extends State<CreatePage> {
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           actions: [
+            Wrap(
+              children: [
+                Container(),
+                SizedBox(
+                  child: Container(
+                      margin: const EdgeInsets.only(top: 10, bottom: 10),
+                      height: 30,
+                      width: 300,
+                      child: TextField(
+                        onChanged: (values) {},
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                            hintText: "Search...",
+                            hintStyle: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400),
+                            icon: const Icon(Icons.search),
+                            contentPadding: const EdgeInsets.all(10),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.white,
+                                  width: 1,
+                                  style: BorderStyle.solid),
+                            ),
+                            border: const OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4))),
+                            focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white)),
+                            iconColor: Colors.white),
+                        style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500),
+                      )),
+                ),
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                    },
+                    icon: Icon(Icons.cancel),
+                  ),
+                ),
+              ],
+            ),
             PopupMenuButton(
               itemBuilder: (context) {
                 return items
@@ -353,21 +409,49 @@ class _CreatePage extends State<CreatePage> {
             PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == SelectedList.all) {
-                    for (var i = 0; i <= item1.length; i++) {
+                    for (var i = 0; i < item1.length; i++) {
                       if (filterList.contains(item1[i])) {
                         filterList.remove(item1[i]);
-                        print(item1[i]);
+                        _collection = FirebaseFirestore.instance
+                            .collection("AppGallery")
+                            .where(
+                              "Isliked",
+                            )
+                            .snapshots();
+                        setState(() {});
+                        print("remove");
                       } else {
-                        for (var i = 0; i <= item1.length; i++) {
-                          filterList.add(item1[i]);
-                        }
+                        filterList.add(item1[i]);
+                        _collection = FirebaseFirestore.instance
+                            .collection("AppGallery")
+                            .where(
+                              "Isliked",
+                            )
+                            .snapshots();
+                        setState(() {});
+                        print("add");
                       }
                     }
                   } else {
                     if (filterList.contains(value)) {
                       filterList.remove(value);
+                      _collection = FirebaseFirestore.instance
+                          .collection("AppGallery")
+                          .where("Isliked", isEqualTo: value)
+                          .snapshots();
+                      print("remove $value");
                     } else {
                       filterList.add(value);
+                      print("add $value");
+                      _collection = FirebaseFirestore.instance
+                          .collection("AppGallery")
+                          .where(
+                            "Isliked",
+                            isEqualTo: true,
+                          )
+                          .snapshots();
+                      setState(() {});
+                      print("add");
                     }
                   }
                 },
@@ -389,82 +473,6 @@ class _CreatePage extends State<CreatePage> {
                         .toList()
                   ];
                 })),
-            /*Column(
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: filterList,
-                  builder: (context, value, child) {
-                    Function deepEq = const DeepCollectionEquality().equals;
-                    return PopupMenuButton(
-                        icon: Icon(Icons.filter_list),
-                        itemBuilder: (context) {
-                          return [
-                            PopupMenuItem(
-                                value: item1,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      child: Checkbox(
-                                          value: deepEq(value, item1),
-                                          onChanged: (bool? val) {
-                                            if (val == null) {
-                                              return;
-                                            }
-                                            if (val) {
-                                              for (var i = 0;
-                                                  i < item1.length;
-                                                  i++) {
-                                                print(item1[i]);
-                                                filterList.value.add(item1[i]);
-                                              }
-                                              print(deepEq(filterList, item1));
-                                            } else {
-                                              for (var i = 0;
-                                                  i < item1.length;
-                                                  i++) {
-                                                print(item1[i]);
-                                                filterList.value
-                                                    .remove(item1[i]);
-                                              }
-                                            }
-                                          }),
-                                    ),
-                                    Container(
-                                      child: Text('all'),
-                                    )
-                                  ],
-                                )),
-                            ...item1
-                                .map((e) => PopupMenuItem(
-                                    value: e,
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          child: Checkbox(
-                                              value: value.contains(e),
-                                              onChanged: (bool? val) {
-                                                if (val == null) {
-                                                  return;
-                                                }
-                                                if (val) {
-                                                  filterList.value.add(e);
-                                                } else {
-                                                  filterList.value.remove(e);
-                                                }
-                                              }),
-                                        ),
-                                        Container(
-                                          child: Text(e),
-                                        )
-                                      ],
-                                    )))
-                                .toList()
-                          ];
-                        });
-                  },
-                )
-              ],
-            )*/
           ],
         ),
         body: StreamBuilder(
