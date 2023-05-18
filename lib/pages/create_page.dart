@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:js_util';
 import 'dart:math';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import '../pages/address_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
@@ -22,16 +24,15 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
-  final CollectionReference _collect =
-      FirebaseFirestore.instance.collection("AppGallery");
-
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _collection;
+  List<AppGallery> photoList = [];
+  Function unOrdDeepEq = const DeepCollectionEquality.unordered().equals;
+  late Stream<QuerySnapshot<Object?>> _collection;
   List<String> items = <String>[
     UserInput.Photographername,
     UserInput.CreatedTime,
     UserInput.Isliked,
   ];
-  List<String> item1 = (<String>[SelectedList.liked, SelectedList.unLiked]);
+  List<String> item1 = [SelectedList.liked, SelectedList.unLiked];
   List<String> filterList = [];
 
   final TextEditingController _nameController = TextEditingController();
@@ -46,6 +47,7 @@ class _CreatePage extends State<CreatePage> {
     super.initState();
     _collection =
         FirebaseFirestore.instance.collection('AppGallery').snapshots();
+    _listPhoto();
   }
 
   Future<void> _create([DocumentSnapshot? documentSnapshot]) async {
@@ -233,6 +235,47 @@ class _CreatePage extends State<CreatePage> {
     );
   }
 
+  _listPhoto() {
+    _collection.listen((snapshots) {
+      print(snapshots.size);
+      snapshots.docs.forEach((document) {
+        AppGallery photo = AppGallery.fromDocumentSnapshot(
+            document as DocumentSnapshot<Map<String, dynamic>>);
+        photoList.add(photo);
+        print(photoList);
+      });
+      setState(() {});
+    });
+  }
+
+  _filterFun() {
+    Query q = FirebaseFirestore.instance.collection("AppGallery");
+//filter list
+    if (unOrdDeepEq(filterList, item1)) {
+      q = q.where(
+        "Isliked",
+      );
+      _collection = q.snapshots();
+      setState(() {});
+      print("funcall 1");
+    } else {
+      if (filterList.contains(SelectedList.liked)) {
+        q = q.where("Isliked", isEqualTo: true);
+        _collection = q.snapshots();
+        setState(() {});
+        print("funcall 2");
+        print(photoList);
+      }
+      if (filterList.contains(SelectedList.unLiked)) {
+        q = q.where('Isliked', isEqualTo: false);
+        _collection = q.snapshots();
+
+        setState(() {});
+        print("funcall3");
+      }
+    }
+  }
+
   List name = [];
   void sortFromFirebase(String query) async {
     final result = await FirebaseFirestore.instance
@@ -308,12 +351,8 @@ class _CreatePage extends State<CreatePage> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-    const all = true;
-
-    List<String> lists = [];
-
+    StreamController<double> controller = StreamController<double>();
+    Stream stream1 = controller.stream;
     String? dropDownValue = UserInput.Photographername;
     return SafeArea(
       child: Scaffold(
@@ -412,51 +451,26 @@ class _CreatePage extends State<CreatePage> {
                     for (var i = 0; i < item1.length; i++) {
                       if (filterList.contains(item1[i])) {
                         filterList.remove(item1[i]);
-                        _collection = FirebaseFirestore.instance
-                            .collection("AppGallery")
-                            .where(
-                              "Isliked",
-                            )
-                            .snapshots();
-                        setState(() {});
-                        print("remove");
                       } else {
                         filterList.add(item1[i]);
-                        _collection = FirebaseFirestore.instance
-                            .collection("AppGallery")
-                            .where(
-                              "Isliked",
-                            )
-                            .snapshots();
-                        setState(() {});
-                        print("add");
                       }
                     }
                   } else {
                     if (filterList.contains(value)) {
                       filterList.remove(value);
-                      print("remove $value");
                     } else {
                       filterList.add(value);
-                      print("add $value");
-                      _collection = FirebaseFirestore.instance
-                          .collection("AppGallery")
-                          .where("Isliked",
-                              isEqualTo: true, isNotEqualTo: false)
-                          .snapshots();
-                      setState(() {
-                        SelectedList.liked = SelectedList.liked!;
-                      });
-                      print("add");
                     }
                   }
+                  _filterFun();
                 },
                 icon: Icon(Icons.filter_list),
                 itemBuilder: ((context) {
-                  Function deepEq = const DeepCollectionEquality().equals;
+                  Function unOrdDeepEq =
+                      const DeepCollectionEquality.unordered().equals;
                   return <PopupMenuEntry<String>>[
                     CheckedPopupMenuItem(
-                      checked: deepEq(filterList, item1),
+                      checked: unOrdDeepEq(filterList, item1),
                       value: SelectedList.all,
                       child: Text(SelectedList.all),
                     ),
@@ -471,47 +485,30 @@ class _CreatePage extends State<CreatePage> {
                 })),
           ],
         ),
-        body: StreamBuilder(
-            stream: _collection,
-            builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-              if (streamSnapshot.hasData) {
-                return SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Container(
-                        alignment: Alignment.topCenter,
-                        margin: const EdgeInsets.all(25),
-                        child: Wrap(
-                          runSpacing: 20,
-                          spacing: 20,
-                          children:
-                              streamSnapshot.data!.docs.map((documentSnapshot) {
-                            Timestamp t =
-                                documentSnapshot['CreatedTime'] as Timestamp;
-                            DateTime date = t.toDate();
-                            var Formateddate =
-                                DateFormat('dd MMMM, yyyy').format(date);
-                            final AppGallery photo =
-                                AppGallery.fromDocumentSnapshot(documentSnapshot
-                                    as DocumentSnapshot<Map<String, dynamic>>);
+        body: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Container(
+                alignment: Alignment.topCenter,
+                margin: const EdgeInsets.all(25),
+                child: Wrap(
+                  runSpacing: 20,
+                  spacing: 20,
+                  children: photoList.map((photos) {
+                    DateTime date = t.toDate();
+                    var Formateddate = DateFormat('dd MMMM, yyyy').format(date);
 
-                            return CardWidget(
-                              photoGallery: photo,
-                              onDeletePressed: _deletePhoto,
-                              onLikePressed: _update,
-                              imageHeight: 200,
-                              imageWidth: 200,
-                              imageFit: StackFit.expand,
-                              boxFit: BoxFit.cover,
-                              formatTime: Formateddate,
-                            );
-                          }).toList(),
-                        )));
-              }
-
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }),
+                    return CardWidget(
+                      photoGallery: photos,
+                      onDeletePressed: _deletePhoto,
+                      onLikePressed: _update,
+                      imageHeight: 200,
+                      imageWidth: 200,
+                      imageFit: StackFit.expand,
+                      boxFit: BoxFit.cover,
+                      formatTime: Formateddate,
+                    );
+                  }).toList(),
+                ))),
         floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.orange,
           onPressed: () => _create(),
