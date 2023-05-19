@@ -4,7 +4,7 @@ class AppGallery {
   final String photgrapherName;
   final String photoURL;
   final String description;
-  final Timestamp createdTime;
+  final DateTime createdTime;
   final bool isLiked;
   final DocumentReference ref;
   AppGallery({
@@ -29,7 +29,7 @@ class AppGallery {
       : photgrapherName = doc.data()!['Photographername'],
         photoURL = doc.data()!['photoURL'],
         description = doc.data()!['Description'],
-        createdTime = doc.data()!['CreatedTime'],
+        createdTime = doc.data()!['CreatedTime'].toDate(),
         isLiked = doc.data()!['Isliked'],
         ref = doc.reference;
 }
