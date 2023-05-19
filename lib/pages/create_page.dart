@@ -241,25 +241,22 @@ class _CreatePage extends State<CreatePage> {
   }
 
   searchPhoto(String query) {
-    final photoslist = photoList.where((AppGallery) {
+    final photosList = photoList.where((AppGallery) {
       final photographername = AppGallery.photgrapherName.toLowerCase();
       final input = query.toLowerCase();
       return photographername.contains(input);
     }).toList();
-    setState(() => this.photos = photoslist);
-    print("trtrttrt");
+    setState(() => photos = photosList);
   }
 
   _listPhoto() {
     _collection.listen((snapshots) {
       photoList.clear();
-      print(snapshots.size);
       snapshots.docs.forEach((document) {
         AppGallery photo = AppGallery.fromDocumentSnapshot(
             document as DocumentSnapshot<Map<String, dynamic>>);
 
         photoList.add(photo);
-        print(photoList);
       });
       setState(() {
         searchPhoto(query);
@@ -267,14 +264,14 @@ class _CreatePage extends State<CreatePage> {
     });
   }
 
+//filter list
   _filterFun() {
     Query q = FirebaseFirestore.instance.collection("AppGallery");
-//filter list
+
     if (unOrdDeepEq(filterList, item1)) {
       q = q.where(
         "Isliked",
       );
-      print("funcall 1");
     } else {
       if (filterList.contains(SelectedList.liked)) {
         q = q.where("Isliked", isEqualTo: true);
