@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:js_util';
-import 'dart:math';
+
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
+
 import 'modal_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
@@ -29,9 +28,9 @@ class _CreatePage extends State<CreatePage> {
   Function unOrdDeepEq = const DeepCollectionEquality.unordered().equals;
   late Stream<QuerySnapshot<Object?>> _collection;
   List<String> items = <String>[
-    UserInput.Photographername,
-    UserInput.CreatedTime,
-    UserInput.Isliked,
+    UserInput.photographerName,
+    UserInput.createdTime,
+    UserInput.isLiked,
   ];
   List<String> item1 = [SelectedList.liked, SelectedList.unLiked];
   List<String> filterList = [];
@@ -59,7 +58,6 @@ class _CreatePage extends State<CreatePage> {
     if (documentSnapshot != null) {
       action = 'update';
       _nameController.text = documentSnapshot['Photographername'];
-      print(_nameController);
       _photoURLController.text = documentSnapshot['photoURL'];
       _descriptionController.text = documentSnapshot['Description'];
       isLiked = documentSnapshot["Isliked"];
@@ -217,7 +215,9 @@ class _CreatePage extends State<CreatePage> {
                                             t;
                                             _controller.text = '';
 
+                                            // ignore: use_build_context_synchronously
                                             Navigator.of(context).pop();
+                                            // ignore: use_build_context_synchronously
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(const SnackBar(
                                                     content: Text(
@@ -275,7 +275,6 @@ class _CreatePage extends State<CreatePage> {
     } else {
       if (filterList.contains(SelectedList.liked)) {
         q = q.where("Isliked", isEqualTo: true);
-        print("funcall 2");
       }
       if (filterList.contains(SelectedList.unLiked)) {
         q = q.where('Isliked', isEqualTo: false);
@@ -352,9 +351,7 @@ class _CreatePage extends State<CreatePage> {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController controller = TextEditingController();
-
-    String? dropDownValue = UserInput.Photographername;
+    String? dropDownValue = UserInput.photographerName;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -364,65 +361,48 @@ class _CreatePage extends State<CreatePage> {
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           actions: [
-            Wrap(
-              children: [
-                Container(),
-                SizedBox(
-                  child: Container(
-                      margin: const EdgeInsets.only(top: 10, bottom: 10),
-                      height: 30,
-                      width: 300,
-                      child: TextField(
-                        onChanged: searchPhoto,
-                        controller: _controller,
-                        decoration: InputDecoration(
-                            hintText: "Search...",
-                            hintStyle: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400),
-                            prefixIcon: Icon(Icons.search),
-                            suffixIcon: Container(
-                              child: IconButton(
-                                iconSize: 15,
-                                icon: Icon(Icons.cancel_sharp),
-                                onPressed: () {
-                                  _controller.clear();
-                                  searchPhoto(query);
-
-                                  FocusScope.of(context).requestFocus();
-                                },
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.all(10),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.white,
-                                  width: 1,
-                                  style: BorderStyle.solid),
-                            ),
-                            border: const OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4))),
-                            focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white)),
-                            iconColor: Colors.white),
-                        style: GoogleFonts.poppins(
+            SizedBox(
+              child: Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 10),
+                  height: 30,
+                  width: 300,
+                  child: TextField(
+                    onChanged: searchPhoto,
+                    controller: _controller,
+                    decoration: InputDecoration(
+                        hintText: "Search...",
+                        hintStyle: GoogleFonts.poppins(
                             color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500),
-                      )),
-                ),
-                Container(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    onPressed: () {
-                      controller.clear();
-                    },
-                    icon: Icon(Icons.cancel),
-                  ),
-                ),
-              ],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400),
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: IconButton(
+                          iconSize: 15,
+                          icon: const Icon(Icons.cancel_sharp),
+                          onPressed: () {
+                            _controller.clear();
+                            searchPhoto(query);
+
+                            FocusScope.of(context).requestFocus();
+                          },
+                        ),
+                        contentPadding: const EdgeInsets.all(10),
+                        enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.white,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4))),
+                        focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white)),
+                        iconColor: Colors.white),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500),
+                  )),
             ),
             PopupMenuButton(
               itemBuilder: (context) {
@@ -438,10 +418,10 @@ class _CreatePage extends State<CreatePage> {
                     "Photographername",
                   );
                 }
-                if (value == UserInput.CreatedTime) {
+                if (value == UserInput.createdTime) {
                   q = q.orderBy("CreatedTime");
                 }
-                if (value == UserInput.Isliked) {
+                if (value == UserInput.isLiked) {
                   q = q.orderBy("Isliked", descending: true);
                 }
                 _collection = q.snapshots();
@@ -470,7 +450,7 @@ class _CreatePage extends State<CreatePage> {
                   }
                   _filterFun();
                 },
-                icon: Icon(Icons.filter_list),
+                icon: const Icon(Icons.filter_list),
                 itemBuilder: ((context) {
                   Function unOrdDeepEq =
                       const DeepCollectionEquality.unordered().equals;
@@ -501,7 +481,8 @@ class _CreatePage extends State<CreatePage> {
                   spacing: 20,
                   children: photos.map((photos) {
                     DateTime date = photos.createdTime;
-                    var Formateddate = DateFormat('dd MMMM, yyyy').format(date);
+                    //
+                    var formatedDate = DateFormat('dd MMMM, yyyy').format(date);
 
                     return CardWidget(
                       photoGallery: photos,
@@ -511,7 +492,7 @@ class _CreatePage extends State<CreatePage> {
                       imageWidth: 200,
                       imageFit: StackFit.expand,
                       boxFit: BoxFit.cover,
-                      formatTime: Formateddate,
+                      formatTime: formatedDate,
                     );
                   }).toList(),
                 ))),

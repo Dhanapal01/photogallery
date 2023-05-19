@@ -1,7 +1,7 @@
 class UserInput {
-  static String Photographername = 'PhotographerName';
-  static String CreatedTime = 'CreatedTime';
-  static String Isliked = 'Isliked';
+  static String photographerName = 'PhotographerName';
+  static String createdTime = 'CreatedTime';
+  static String isLiked = 'Isliked';
 }
 
 class SelectedList {
