@@ -1,7 +1,11 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:photogalery/pages/login_page.dart';
+import 'package:photogalery/pages/login_register_page.dart';
 
+import 'auth_page.dart';
 import 'modal_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
@@ -14,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreatePage extends StatefulWidget {
-  const CreatePage({super.key});
+  CreatePage({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -23,6 +27,28 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
+  final User? user = Auth().currentUser;
+  Future<void> signOut() async {
+    await Auth().signOut();
+  }
+
+  Widget _title() {
+    return const Text("Login Page");
+  }
+
+  Widget _userUid() {
+    return Text(user?.email ?? "User email");
+  }
+
+  Widget _signOutButton() {
+    return CustomButton(
+        onPressed: () {
+          signOut();
+          Navigator.pop(context);
+        },
+        title: "SignOut");
+  }
+
   List<AppGallery> photoList = [];
 
   Function unOrdDeepEq = const DeepCollectionEquality.unordered().equals;
@@ -240,6 +266,37 @@ class _CreatePage extends State<CreatePage> {
     );
   }
 
+  Future<void> authSignOut() async {
+    await showDialog(
+        useRootNavigator: true,
+        useSafeArea: true,
+        context: context,
+        builder: (context) {
+          return Center(
+              child: Center(
+                  child: AlertDialog(
+            contentPadding: const EdgeInsets.all(8),
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12))),
+            title: Center(child: _title()),
+            content: Container(
+              width: 300,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Container(
+                        padding: EdgeInsets.only(bottom: 15),
+                        child: _userUid()),
+                    _signOutButton(),
+                  ]),
+            ),
+          )));
+        });
+  }
+
   searchPhoto(String query) {
     final photosList = photoList.where((AppGallery) {
       final photographername = AppGallery.photgrapherName.toLowerCase();
@@ -354,18 +411,16 @@ class _CreatePage extends State<CreatePage> {
     String? dropDownValue = UserInput.photographerName;
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          scrolledUnderElevation: 2,
-          title: Text(
-            'Photo Gallery',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          actions: [
-            SizedBox(
-              child: Container(
+          appBar: AppBar(
+            title: Text(
+              'Photo Gallery',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+            ),
+            actions: [
+              Container(
                   margin: const EdgeInsets.only(top: 10, bottom: 10),
                   height: 30,
-                  width: 300,
+                  width: 150,
                   child: TextField(
                     onChanged: searchPhoto,
                     controller: _controller,
@@ -403,107 +458,124 @@ class _CreatePage extends State<CreatePage> {
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                   )),
-            ),
-            PopupMenuButton(
-              itemBuilder: (context) {
-                return items
-                    .map((e) => PopupMenuItem<String>(value: e, child: Text(e)))
-                    .toList();
-              },
-              initialValue: dropDownValue,
-              onSelected: (value) {
-                Query q = FirebaseFirestore.instance.collection("AppGallery");
-                if (value == dropDownValue) {
-                  q = q.orderBy(
-                    "Photographername",
-                  );
-                }
-                if (value == UserInput.createdTime) {
-                  q = q.orderBy("CreatedTime");
-                }
-                if (value == UserInput.isLiked) {
-                  q = q.orderBy("Isliked", descending: true);
-                }
-                _collection = q.snapshots();
-                setState(() {
-                  _listPhoto();
-                });
-              },
-              icon: const Icon(Icons.sort),
-            ),
-            PopupMenuButton<String>(
+              PopupMenuButton(
+                itemBuilder: (context) {
+                  return items
+                      .map((e) =>
+                          PopupMenuItem<String>(value: e, child: Text(e)))
+                      .toList();
+                },
+                initialValue: dropDownValue,
                 onSelected: (value) {
-                  if (value == SelectedList.all) {
-                    for (var i = 0; i < item1.length; i++) {
-                      if (filterList.contains(item1[i])) {
-                        filterList.remove(item1[i]);
+                  Query q = FirebaseFirestore.instance.collection("AppGallery");
+                  if (value == dropDownValue) {
+                    q = q.orderBy(
+                      "Photographername",
+                    );
+                  }
+                  if (value == UserInput.createdTime) {
+                    q = q.orderBy("CreatedTime");
+                  }
+                  if (value == UserInput.isLiked) {
+                    q = q.orderBy("Isliked", descending: true);
+                  }
+                  _collection = q.snapshots();
+                  setState(() {
+                    _listPhoto();
+                  });
+                },
+                icon: const Icon(Icons.sort),
+              ),
+              PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == SelectedList.all) {
+                      for (var i = 0; i < item1.length; i++) {
+                        if (filterList.contains(item1[i])) {
+                          filterList.remove(item1[i]);
+                        } else {
+                          filterList.add(item1[i]);
+                        }
+                      }
+                    } else {
+                      if (filterList.contains(value)) {
+                        filterList.remove(value);
                       } else {
-                        filterList.add(item1[i]);
+                        filterList.add(value);
                       }
                     }
-                  } else {
-                    if (filterList.contains(value)) {
-                      filterList.remove(value);
-                    } else {
-                      filterList.add(value);
-                    }
-                  }
-                  _filterFun();
-                },
-                icon: const Icon(Icons.filter_list),
-                itemBuilder: ((context) {
-                  Function unOrdDeepEq =
-                      const DeepCollectionEquality.unordered().equals;
-                  return <PopupMenuEntry<String>>[
-                    CheckedPopupMenuItem(
-                      checked: unOrdDeepEq(filterList, item1),
-                      value: SelectedList.all,
-                      child: Text(SelectedList.all),
-                    ),
-                    ...item1
-                        .map((e) => CheckedPopupMenuItem(
-                              checked: filterList.contains(e),
-                              value: e,
-                              child: Text(e),
-                            ))
-                        .toList()
-                  ];
-                })),
-          ],
-        ),
-        body: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Container(
-                alignment: Alignment.topCenter,
-                margin: const EdgeInsets.all(25),
-                child: Wrap(
-                  runSpacing: 20,
-                  spacing: 20,
-                  children: photos.map((photos) {
-                    DateTime date = photos.createdTime;
-                    //
-                    var formatedDate = DateFormat('dd MMMM, yyyy').format(date);
-
-                    return CardWidget(
-                      photoGallery: photos,
-                      onDeletePressed: _deletePhoto,
-                      onLikePressed: _update,
-                      imageHeight: 200,
-                      imageWidth: 200,
-                      imageFit: StackFit.expand,
-                      boxFit: BoxFit.cover,
-                      formatTime: formatedDate,
-                    );
-                  }).toList(),
-                ))),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.orange,
-          onPressed: () => _create(),
-          child: const Icon(
-            Icons.add,
+                    _filterFun();
+                  },
+                  icon: const Icon(Icons.filter_list),
+                  itemBuilder: ((context) {
+                    Function unOrdDeepEq =
+                        const DeepCollectionEquality.unordered().equals;
+                    return <PopupMenuEntry<String>>[
+                      CheckedPopupMenuItem(
+                        checked: unOrdDeepEq(filterList, item1),
+                        value: SelectedList.all,
+                        child: Text(SelectedList.all),
+                      ),
+                      ...item1
+                          .map((e) => CheckedPopupMenuItem(
+                                checked: filterList.contains(e),
+                                value: e,
+                                child: Text(e),
+                              ))
+                          .toList()
+                    ];
+                  })),
+              IconButton(
+                  onPressed: () {
+                    authSignOut();
+                  },
+                  icon: Icon(Icons.logout_outlined))
+            ],
           ),
-        ),
-      ),
+          body: LayoutBuilder(
+              builder: (BuildContext ctx, BoxConstraints constraints) {
+            return Container(
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Container(
+                      alignment: Alignment.topCenter,
+                      margin: const EdgeInsets.all(25),
+                      child: Wrap(
+                        runSpacing: 20,
+                        spacing: 20,
+                        children: photos.map((photos) {
+                          DateTime date = photos.createdTime;
+                          //
+                          var formatedDate =
+                              DateFormat('dd MMMM, yyyy').format(date);
+                          if (constraints.maxWidth > 500) {
+                            double width = 200;
+                          } else {
+                            constraints.maxWidth;
+                          }
+
+                          return CardWidget(
+                            photoGallery: photos,
+                            onDeletePressed: _deletePhoto,
+                            onLikePressed: _update,
+                            imageHeight: 200,
+                            imageWidth: constraints.maxWidth > 500
+                                ? 200
+                                : constraints.maxWidth,
+                            imageFit: StackFit.expand,
+                            boxFit: BoxFit.cover,
+                            formatTime: formatedDate,
+                          );
+                        }).toList(),
+                      ))),
+            );
+          }),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: Colors.orange,
+            onPressed: () => _create(),
+            child: const Icon(
+              Icons.add,
+            ),
+          )),
     );
   }
 }

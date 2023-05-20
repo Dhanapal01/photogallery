@@ -24,15 +24,17 @@ class CustomButton extends StatefulWidget {
 }
 
 class _CustomButtonState extends State<CustomButton> {
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
         style: const ButtonStyle(
             backgroundColor: MaterialStatePropertyAll(Colors.orange)),
         onPressed: widget.onPressed,
-        child: Text(
+        child: Container(
+            child: Text(
           widget.title,
           style: widget.titleStyle,
-        ));
+        )));
   }
 }
