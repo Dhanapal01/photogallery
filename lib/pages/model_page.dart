@@ -1,13 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AppGallery {
+  final String addedBy;
   final String photgrapherName;
   final String photoURL;
   final String description;
   final DateTime createdTime;
   final bool isLiked;
   final DocumentReference ref;
-  AppGallery({
+  AppGallery(
+    this.addedBy, {
     required this.ref,
     required this.photgrapherName,
     required this.photoURL,
@@ -17,6 +20,7 @@ class AppGallery {
   });
   Map<String, dynamic> toMap() {
     return {
+      'AddedBy': addedBy,
       'Photographername': photgrapherName,
       'PhotoURL': photoURL,
       'Description': description,
@@ -25,8 +29,10 @@ class AppGallery {
     };
   }
 
-  AppGallery.fromDocumentSnapshot(DocumentSnapshot<Map<String, dynamic>> doc)
-      : photgrapherName = doc.data()!['Photographername'],
+  AppGallery.fromDocumentSnapshot(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  )   : addedBy = doc.data()!['AddedBy'],
+        photgrapherName = doc.data()!['Photographername'],
         photoURL = doc.data()!['photoURL'],
         description = doc.data()!['Description'],
         createdTime = doc.data()!['CreatedTime'].toDate(),

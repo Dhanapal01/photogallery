@@ -12,6 +12,8 @@ class WidgetTree extends StatefulWidget {
 }
 
 class _WidgetTreeState extends State<WidgetTree> {
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photogalery/pages/button/button_widget.dart';
-import 'modal_page.dart';
+import 'model_page.dart';
 
 class ImageWidget extends StatefulWidget {
   const ImageWidget({super.key});
@@ -66,7 +66,7 @@ class _CardWidgetState extends State<CardWidget> {
                   contentPadding: const EdgeInsets.all(0),
                   content: SizedBox(
                     width: width,
-                    height: height,
+                    height: height > 500 ? height : height - 50,
                     child: ClipRRect(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(12)),

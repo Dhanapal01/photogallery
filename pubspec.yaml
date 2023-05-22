@@ -47,6 +47,9 @@ dependencies:
   jiffy: ^6.1.0
   full_screen_image_null_safe: ^2.0.0
   collection: ^1.17.0
+  image_picker: ^0.8.7+5
+  file_picker: ^5.3.0
+  firebase_storage: ^11.2.1
 
 dev_dependencies:
   flutter_test:

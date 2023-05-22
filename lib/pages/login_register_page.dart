@@ -18,18 +18,33 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isLogin = true;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  bool isLoading = false;
   Future<void> signInWithEmailAndPassword() async {
+    setState(() {
+      isLoading = true;
+    });
+    Future.delayed(Duration(seconds: 5));
     try {
       await Auth().signInWithEmailAndPassword(
           email: _emailController.text, password: _passwordController.text);
+
+      Future.delayed(Duration(seconds: 2));
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message!;
       });
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> createUserWithEmailAndPassword() async {
+    setState(() {
+      isLoading = true;
+    });
+    Future.delayed(Duration(seconds: 5));
     try {
       await Auth().createUserWithEmailAndPassword(
           email: _emailController.text, password: _passwordController.text);
@@ -38,6 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
         errorMessage = e.message!;
       });
     }
+    isLoading = false;
   }
 
   Widget _title() {
@@ -54,7 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _errorMessage() {
     return Text(
       errorMessage == '' ? '' : 'Humm ? $errorMessage',
-      style: TextStyle(color: Colors.redAccent),
+      style: const TextStyle(color: Colors.redAccent),
     );
   }
 
@@ -85,27 +101,28 @@ class _RegisterPageState extends State<RegisterPage> {
       body: Container(
         height: double.infinity,
         width: double.infinity,
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: 20),
                 child: _entryField('email', _emailController),
               ),
               Container(
-                padding: EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: 20),
                 child: _entryField('password', _passwordController),
               ),
               Container(
-                padding: EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: 20),
                 child: _errorMessage(),
               ),
               Container(
-                padding: EdgeInsets.only(bottom: 20),
-                child: _submitButton(),
-              ),
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: isLoading
+                      ? CircularProgressIndicator()
+                      : _submitButton()),
               _loginOrRegisterButton(),
             ]),
       ),

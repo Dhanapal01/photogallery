@@ -1,19 +1,20 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:photogalery/pages/login_page.dart';
 import 'package:photogalery/pages/login_register_page.dart';
-
+import 'package:file_picker/file_picker.dart';
 import 'auth_page.dart';
-import 'modal_page.dart';
+import 'model_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/button/button_widget.dart';
 import 'card_page.dart';
 import '../pages/form_field.dart';
 import '../pages/sort_list.dart';
 import 'package:intl/intl.dart';
-
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -27,9 +28,39 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
+  PlatformFile? pickedFile;
+  UploadTask? uploadTask;
+  Future selectPhoto() async {
+    final result = await FilePicker.platform.pickFiles();
+    if (result == null) return;
+    setState(() {
+      pickedFile == result.files.first;
+    });
+  }
+
+  Future uploadFile() async {
+    final path = 'files/${pickedFile!.name}';
+    final file = File(pickedFile!.path!);
+    final ref = FirebaseStorage.instance.ref().child(path);
+    uploadTask = ref.putFile(file);
+    final snapshot = await uploadTask!.whenComplete(() {});
+    final urlDownload = await snapshot.ref.getDownloadURL();
+    print(urlDownload);
+  }
+
+  Query q = FirebaseFirestore.instance.collection("AppGallery");
   final User? user = Auth().currentUser;
+  var uid = FirebaseAuth.instance.currentUser!.uid;
+
+  bool isLoading = false;
   Future<void> signOut() async {
+    setState(() {
+      isLoading = true;
+    });
     await Auth().signOut();
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Widget _title() {
@@ -44,6 +75,7 @@ class _CreatePage extends State<CreatePage> {
     return CustomButton(
         onPressed: () {
           signOut();
+
           Navigator.pop(context);
         },
         title: "SignOut");
@@ -75,6 +107,8 @@ class _CreatePage extends State<CreatePage> {
     super.initState();
     _collection =
         FirebaseFirestore.instance.collection('AppGallery').snapshots();
+    q = q.where('AddedBy', isEqualTo: uid);
+    _collection = q.snapshots();
     _listPhoto();
     photos = photoList;
   }
@@ -220,6 +254,7 @@ class _CreatePage extends State<CreatePage> {
                                             _photoURLController.text;
                                         final String description =
                                             _descriptionController.text;
+                                        var uid = user!.uid;
 
                                         DateTime date = t.toDate();
                                         bool isLiked = false;
@@ -228,6 +263,7 @@ class _CreatePage extends State<CreatePage> {
                                             await FirebaseFirestore.instance
                                                 .collection('AppGallery')
                                                 .add({
+                                              "AddedBy": uid,
                                               "Photographername":
                                                   name.toUpperCase(),
                                               "photoURL": photoURL,
@@ -256,6 +292,45 @@ class _CreatePage extends State<CreatePage> {
                             )
                           ],
                         ),
+                        TableRow(children: <Widget>[
+                          Container(
+                            margin: const EdgeInsets.only(top: 20, left: 1),
+                            padding: const EdgeInsets.only(right: 1),
+                            child: Text(
+                              "image picker ",
+                              style: GoogleFonts.poppins(
+                                  textStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400)),
+                            ),
+                          ),
+                          TableCell(
+                              child: Container(
+                            child: IconButton(
+                                icon: Icon(Icons.image_rounded),
+                                onPressed: () async {
+                                  await showDialog(
+                                      context: context,
+                                      builder: ((context) {
+                                        return AlertDialog(
+                                          content:
+                                              Text('Please select the image'),
+                                          actions: [
+                                            CustomButton(
+                                              onPressed: () {
+                                                selectPhoto();
+                                              },
+                                              title: "select photo",
+                                            ),
+                                            CustomButton(
+                                                title: 'uploadbutton',
+                                                onPressed: uploadFile)
+                                          ],
+                                        );
+                                      }));
+                                }),
+                          ))
+                        ]),
                       ])
                     ],
                   ),
@@ -290,7 +365,11 @@ class _CreatePage extends State<CreatePage> {
                     Container(
                         padding: EdgeInsets.only(bottom: 15),
                         child: _userUid()),
-                    _signOutButton(),
+                    Container(
+                      child: isLoading
+                          ? CircularProgressIndicator()
+                          : _signOutButton(),
+                    )
                   ]),
             ),
           )));
@@ -303,6 +382,7 @@ class _CreatePage extends State<CreatePage> {
       final input = query.toLowerCase();
       return photographername.contains(input);
     }).toList();
+
     setState(() => photos = photosList);
   }
 
@@ -326,9 +406,15 @@ class _CreatePage extends State<CreatePage> {
     Query q = FirebaseFirestore.instance.collection("AppGallery");
 
     if (unOrdDeepEq(filterList, item1)) {
-      q = q.where(
-        "Isliked",
-      );
+      if (unOrdDeepEq(filterList, item1)) {
+        q = q.where(
+          "Isliked",
+        );
+      } else {
+        q = q.where(
+          "Isliked",
+        );
+      }
     } else {
       if (filterList.contains(SelectedList.liked)) {
         q = q.where("Isliked", isEqualTo: true);
@@ -337,7 +423,9 @@ class _CreatePage extends State<CreatePage> {
         q = q.where('Isliked', isEqualTo: false);
       }
     }
+
     setState(() {});
+    q = q.where('AddedBy', isEqualTo: uid);
     _collection = q.snapshots();
     _listPhoto();
   }
@@ -409,6 +497,7 @@ class _CreatePage extends State<CreatePage> {
   @override
   Widget build(BuildContext context) {
     String? dropDownValue = UserInput.photographerName;
+
     return SafeArea(
       child: Scaffold(
           appBar: AppBar(
@@ -479,6 +568,7 @@ class _CreatePage extends State<CreatePage> {
                   if (value == UserInput.isLiked) {
                     q = q.orderBy("Isliked", descending: true);
                   }
+                  q = q.where('AddedBy', isEqualTo: uid);
                   _collection = q.snapshots();
                   setState(() {
                     _listPhoto();
