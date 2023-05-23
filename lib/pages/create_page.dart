@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:photogalery/pages/login_page.dart';
 import 'package:photogalery/pages/login_register_page.dart';
 import 'package:file_picker/file_picker.dart';
@@ -31,22 +33,28 @@ class _CreatePage extends State<CreatePage> {
   PlatformFile? pickedFile;
   UploadTask? uploadTask;
   Future selectPhoto() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null) return;
-    setState(() {
-      pickedFile == result.files.first;
-    });
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      Uint8List fileBytes = result.files.first.bytes!;
+      String fileName = result.files.first.name;
+      final ref = await FirebaseStorage.instance
+          .ref('upload/$fileName')
+          .putData(fileBytes);
+
+      final urlDownload = await ref.ref.getDownloadURL();
+      print(urlDownload);
+    }
   }
 
-  Future uploadFile() async {
-    final path = 'files/${pickedFile!.name}';
+  /*Future uploadFile() async {
+    final path = 'files/${pickedFile.name}';
     final file = File(pickedFile!.path!);
-    final ref = FirebaseStorage.instance.ref().child(path);
-    uploadTask = ref.putFile(file);
-    final snapshot = await uploadTask!.whenComplete(() {});
+    final ref = FirebaseStorage.instance.ref('upload/$fileName').child(path);
+    uploadTask = ref.putData(file);
+    final snapshot = await uploadTask.whenComplete(() {});
     final urlDownload = await snapshot.ref.getDownloadURL();
     print(urlDownload);
-  }
+  }*/
 
   Query q = FirebaseFirestore.instance.collection("AppGallery");
   final User? user = Auth().currentUser;
@@ -230,7 +238,7 @@ class _CreatePage extends State<CreatePage> {
                                     width: 119.83,
                                     height: 36.43,
                                     margin: const EdgeInsets.only(
-                                        top: 35, left: 38, right: 10),
+                                        top: 35, left: 30, right: 10),
                                     child: CustomButton(
                                         title: "CANCEL",
                                         onPressed: () async {
@@ -324,7 +332,7 @@ class _CreatePage extends State<CreatePage> {
                                             ),
                                             CustomButton(
                                                 title: 'uploadbutton',
-                                                onPressed: uploadFile)
+                                                onPressed: () {})
                                           ],
                                         );
                                       }));
