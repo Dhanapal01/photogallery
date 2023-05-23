@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:photogalery/pages/login_page.dart';
 import 'package:photogalery/pages/login_register_page.dart';
@@ -30,31 +29,42 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
-  PlatformFile? pickedFile;
-  UploadTask? uploadTask;
-  Future selectPhoto() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      Uint8List fileBytes = result.files.first.bytes!;
-      String fileName = result.files.first.name;
-      final ref = await FirebaseStorage.instance
-          .ref('upload/$fileName')
-          .putData(fileBytes);
+  double progress = 0.0;
+  String? urlDownload;
+  late Uint8List pickedFile;
+  PlatformFile? pickers;
+  String? fileName;
 
-      final urlDownload = await ref.ref.getDownloadURL();
-      print(urlDownload);
-    }
+  Future selectPhoto() async {
+    final result = await FilePicker.platform.pickFiles();
+    if (result == null) return;
+    setState(() {
+      fileName = result.files.first.name;
+      pickedFile = result.files.first.bytes!;
+    });
   }
 
-  /*Future uploadFile() async {
-    final path = 'files/${pickedFile.name}';
-    final file = File(pickedFile!.path!);
-    final ref = FirebaseStorage.instance.ref('upload/$fileName').child(path);
-    uploadTask = ref.putData(file);
+  Future uploadFile() async {
+    final path = 'files/${fileName}';
+    final ref = FirebaseStorage.instance.ref().child(path);
+
+    UploadTask uploadTask = ref.putData(pickedFile);
+    uploadTask.snapshotEvents.listen((TaskSnapshot) {
+      setState(() {
+        progress = ((TaskSnapshot.bytesTransferred.toDouble() /
+                    TaskSnapshot.totalBytes.toDouble()) *
+                100)
+            .roundToDouble();
+        print(progress);
+      });
+    });
+
     final snapshot = await uploadTask.whenComplete(() {});
-    final urlDownload = await snapshot.ref.getDownloadURL();
+    urlDownload = await snapshot.ref.getDownloadURL();
     print(urlDownload);
-  }*/
+  }
+
+  buildProgress() {}
 
   Query q = FirebaseFirestore.instance.collection("AppGallery");
   final User? user = Auth().currentUser;
@@ -104,7 +114,7 @@ class _CreatePage extends State<CreatePage> {
   late List<AppGallery> photos = [];
 
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _photoURLController = TextEditingController();
+  late String? _photoURLController = urlDownload;
   final TextEditingController _descriptionController = TextEditingController();
   late Timestamp t = Timestamp.now();
   late bool isLiked = false;
@@ -126,7 +136,7 @@ class _CreatePage extends State<CreatePage> {
     if (documentSnapshot != null) {
       action = 'update';
       _nameController.text = documentSnapshot['Photographername'];
-      _photoURLController.text = documentSnapshot['photoURL'];
+      _photoURLController = documentSnapshot['photoURL'];
       _descriptionController.text = documentSnapshot['Description'];
       isLiked = documentSnapshot["Isliked"];
     }
@@ -194,20 +204,49 @@ class _CreatePage extends State<CreatePage> {
                                 const EdgeInsets.only(left: 5, right: 12.5),
                             margin: const EdgeInsets.only(top: 30),
                             child: Text(
-                              "Image Url ",
+                              "Image Picker ",
                               style: GoogleFonts.poppins(fontSize: 12),
                             ),
                           ),
                           TableCell(
-                            child: Container(
-                                margin: const EdgeInsets.only(top: 20),
-                                width: 148,
-                                height: 31,
-                                child: Center(
-                                    child: FormfieldPage(
-                                        controller: _photoURLController,
-                                        hinttext: 'Enter Text'))),
-                          )
+                              child: Container(
+                            alignment: Alignment.center,
+                            margin: const EdgeInsets.only(
+                              top: 14,
+                            ),
+                            child: IconButton(
+                                alignment: Alignment.center,
+                                tooltip: "image Upload",
+                                color: Colors.black87,
+                                icon: Icon(Icons.photo_album),
+                                onPressed: () async {
+                                  await showDialog(
+                                      context: context,
+                                      builder: ((context) {
+                                        return AlertDialog(
+                                          content:
+                                              Text('Please select the image'),
+                                          actions: [
+                                            CustomButton(
+                                              onPressed: () {
+                                                selectPhoto();
+                                              },
+                                              title: "Select Photo",
+                                            ),
+                                            CustomButton(
+                                                title: 'Upload',
+                                                onPressed: () {
+                                                  uploadFile();
+                                                }),
+                                            Container(
+                                              child: CircularProgressIndicator(
+                                                  value: progress % 100),
+                                            )
+                                          ],
+                                        );
+                                      }));
+                                }),
+                          ))
                         ]),
                         TableRow(children: <Widget>[
                           Container(
@@ -258,8 +297,7 @@ class _CreatePage extends State<CreatePage> {
                                       onPressed: () async {
                                         final String name =
                                             _nameController.text;
-                                        final String photoURL =
-                                            _photoURLController.text;
+                                        final String? photoURL = urlDownload;
                                         final String description =
                                             _descriptionController.text;
                                         var uid = user!.uid;
@@ -280,7 +318,7 @@ class _CreatePage extends State<CreatePage> {
                                               "Isliked": isLiked,
                                             });
                                             _nameController.text = '';
-                                            _photoURLController.text = '';
+                                            _photoURLController = '';
                                             _descriptionController.text = '';
                                             t;
                                             _controller.text = '';
@@ -300,45 +338,6 @@ class _CreatePage extends State<CreatePage> {
                             )
                           ],
                         ),
-                        TableRow(children: <Widget>[
-                          Container(
-                            margin: const EdgeInsets.only(top: 20, left: 1),
-                            padding: const EdgeInsets.only(right: 1),
-                            child: Text(
-                              "image picker ",
-                              style: GoogleFonts.poppins(
-                                  textStyle: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400)),
-                            ),
-                          ),
-                          TableCell(
-                              child: Container(
-                            child: IconButton(
-                                icon: Icon(Icons.image_rounded),
-                                onPressed: () async {
-                                  await showDialog(
-                                      context: context,
-                                      builder: ((context) {
-                                        return AlertDialog(
-                                          content:
-                                              Text('Please select the image'),
-                                          actions: [
-                                            CustomButton(
-                                              onPressed: () {
-                                                selectPhoto();
-                                              },
-                                              title: "select photo",
-                                            ),
-                                            CustomButton(
-                                                title: 'uploadbutton',
-                                                onPressed: () {})
-                                          ],
-                                        );
-                                      }));
-                                }),
-                          ))
-                        ]),
                       ])
                     ],
                   ),
@@ -474,9 +473,9 @@ class _CreatePage extends State<CreatePage> {
                 }, children: <TableRow>[
                   TableRow(children: <Widget>[
                     Container(
-                        height: 36.43,
+                        height: 38,
                         padding:
-                            const EdgeInsets.only(top: 10, left: 15, right: 12),
+                            const EdgeInsets.only(top: 10, left: 10, right: 12),
                         child: CustomButton(
                           onPressed: () => Navigator.pop(context),
                           title: 'CANCEL',
@@ -645,11 +644,6 @@ class _CreatePage extends State<CreatePage> {
                           //
                           var formatedDate =
                               DateFormat('dd MMMM, yyyy').format(date);
-                          if (constraints.maxWidth > 500) {
-                            double width = 200;
-                          } else {
-                            constraints.maxWidth;
-                          }
 
                           return CardWidget(
                             photoGallery: photos,
