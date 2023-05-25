@@ -48,8 +48,10 @@ dependencies:
   full_screen_image_null_safe: ^2.0.0
   collection: ^1.17.0
   image_picker: ^0.8.7+5
-  file_picker: ^5.3.0
+  dependencies:
+  file_picker: ^5.1.0
   firebase_storage: ^11.2.1
+  liquid_progress_indicator: ^0.4.0
 
 dev_dependencies:
   flutter_test:

@@ -31,10 +31,9 @@ class _CustomButtonState extends State<CustomButton> {
         style: const ButtonStyle(
             backgroundColor: MaterialStatePropertyAll(Colors.orange)),
         onPressed: widget.onPressed,
-        child: Container(
-            child: Text(
+        child: Text(
           widget.title,
           style: widget.titleStyle,
-        )));
+        ));
   }
 }

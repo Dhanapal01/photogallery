@@ -19,10 +19,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool isLoading = false;
+  bool _isLoading = false;
   Future<void> signInWithEmailAndPassword() async {
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
     Future.delayed(Duration(seconds: 5));
     try {
@@ -36,13 +36,13 @@ class _RegisterPageState extends State<RegisterPage> {
       });
     }
     setState(() {
-      isLoading = false;
+      _isLoading = false;
     });
   }
 
-  Future<void> createUserWithEmailAndPassword() async {
+  Future<void> _createUserWithEmailAndPassword() async {
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
     Future.delayed(Duration(seconds: 5));
     try {
@@ -53,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
         errorMessage = e.message!;
       });
     }
-    isLoading = false;
+    _isLoading = false;
   }
 
   Widget _title() {
@@ -78,7 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return CustomButton(
         onPressed: isLogin
             ? signInWithEmailAndPassword
-            : createUserWithEmailAndPassword,
+            : _createUserWithEmailAndPassword,
         title: isLogin ? 'Login' : 'Register');
   }
 
@@ -120,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               Container(
                   padding: const EdgeInsets.only(bottom: 20),
-                  child: isLoading
+                  child: _isLoading
                       ? CircularProgressIndicator()
                       : _submitButton()),
               _loginOrRegisterButton(),

@@ -1,10 +1,6 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:photogalery/pages/login_page.dart';
 import 'package:photogalery/pages/login_register_page.dart';
 import 'package:file_picker/file_picker.dart';
 import 'auth_page.dart';
@@ -29,60 +25,45 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePage extends State<CreatePage> {
-  double progress = 0.0;
-  String? urlDownload;
-  late Uint8List pickedFile;
-  PlatformFile? pickers;
-  String? fileName;
+  double _progress = 0.0;
+  String? _urlDownload;
+  Uint8List? _pickedFile;
+  String? _fileName;
 
-  Future selectPhoto() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null) return;
-    setState(() {
-      fileName = result.files.first.name;
-      pickedFile = result.files.first.bytes!;
-    });
+  Future<void> _showImagePicker() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      withData: true,
+      allowedExtensions: [
+        'png',
+        'jpg',
+        'jpeg',
+        'PDF',
+        'pdf',
+      ],
+    );
+
+    _pickedFile = result!.files.first.bytes;
+    return;
   }
-
-  Future uploadFile() async {
-    final path = 'files/${fileName}';
-    final ref = FirebaseStorage.instance.ref().child(path);
-
-    UploadTask uploadTask = ref.putData(pickedFile);
-    uploadTask.snapshotEvents.listen((TaskSnapshot) {
-      setState(() {
-        progress = ((TaskSnapshot.bytesTransferred.toDouble() /
-                    TaskSnapshot.totalBytes.toDouble()) *
-                100)
-            .roundToDouble();
-        print(progress);
-      });
-    });
-
-    final snapshot = await uploadTask.whenComplete(() {});
-    urlDownload = await snapshot.ref.getDownloadURL();
-    print(urlDownload);
-  }
-
-  buildProgress() {}
 
   Query q = FirebaseFirestore.instance.collection("AppGallery");
   final User? user = Auth().currentUser;
   var uid = FirebaseAuth.instance.currentUser!.uid;
 
-  bool isLoading = false;
-  Future<void> signOut() async {
+  bool _isLoading = false;
+  Future<void> _signOut() async {
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
     await Auth().signOut();
     setState(() {
-      isLoading = false;
+      _isLoading = false;
     });
   }
 
   Widget _title() {
-    return const Text("Login Page");
+    return const Text("LogOut Page");
   }
 
   Widget _userUid() {
@@ -92,32 +73,31 @@ class _CreatePage extends State<CreatePage> {
   Widget _signOutButton() {
     return CustomButton(
         onPressed: () {
-          signOut();
+          _signOut();
 
           Navigator.pop(context);
         },
         title: "SignOut");
   }
 
-  List<AppGallery> photoList = [];
+  final List<AppGallery> _photoList = [];
 
-  Function unOrdDeepEq = const DeepCollectionEquality.unordered().equals;
+  final Function _unOrdDeepEq = const DeepCollectionEquality.unordered().equals;
   late Stream<QuerySnapshot<Object?>> _collection;
-  List<String> items = <String>[
+  final List<String> _items = <String>[
     UserInput.photographerName,
     UserInput.createdTime,
     UserInput.isLiked,
   ];
-  List<String> item1 = [SelectedList.liked, SelectedList.unLiked];
-  List<String> filterList = [];
-  String query = '';
-  late List<AppGallery> photos = [];
+  final List<String> _item1 = [SelectedList.liked, SelectedList.unLiked];
+  final List<String> _filterList = [];
+  final String _query = '';
+  late List<AppGallery> _images = [];
 
   final TextEditingController _nameController = TextEditingController();
-  late String? _photoURLController = urlDownload;
   final TextEditingController _descriptionController = TextEditingController();
   late Timestamp t = Timestamp.now();
-  late bool isLiked = false;
+  bool _isLiked = false;
   final _controller = TextEditingController();
 
   @override
@@ -128,7 +108,7 @@ class _CreatePage extends State<CreatePage> {
     q = q.where('AddedBy', isEqualTo: uid);
     _collection = q.snapshots();
     _listPhoto();
-    photos = photoList;
+    _images = _photoList;
   }
 
   Future<void> _create([DocumentSnapshot? documentSnapshot]) async {
@@ -136,9 +116,8 @@ class _CreatePage extends State<CreatePage> {
     if (documentSnapshot != null) {
       action = 'update';
       _nameController.text = documentSnapshot['Photographername'];
-      _photoURLController = documentSnapshot['photoURL'];
       _descriptionController.text = documentSnapshot['Description'];
-      isLiked = documentSnapshot["Isliked"];
+      _isLiked = documentSnapshot["Isliked"];
     }
     final formkey = GlobalKey<FormState>();
     Container(
@@ -218,32 +197,117 @@ class _CreatePage extends State<CreatePage> {
                                 alignment: Alignment.center,
                                 tooltip: "image Upload",
                                 color: Colors.black87,
-                                icon: Icon(Icons.photo_album),
+                                icon: const Icon(Icons.photo_album),
                                 onPressed: () async {
                                   await showDialog(
                                       context: context,
                                       builder: ((context) {
-                                        return AlertDialog(
-                                          content:
-                                              Text('Please select the image'),
-                                          actions: [
-                                            CustomButton(
-                                              onPressed: () {
-                                                selectPhoto();
-                                              },
-                                              title: "Select Photo",
-                                            ),
-                                            CustomButton(
-                                                title: 'Upload',
-                                                onPressed: () {
-                                                  uploadFile();
-                                                }),
-                                            Container(
-                                              child: CircularProgressIndicator(
-                                                  value: progress % 100),
-                                            )
-                                          ],
-                                        );
+                                        return StatefulBuilder(
+                                            builder: (context, setState) {
+                                          return AlertDialog(
+                                            contentPadding:
+                                                const EdgeInsets.all(8),
+                                            content: Text(
+                                                'Please select the image',
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    shadows: [
+                                                      Shadow(
+                                                          color: Colors.black87,
+                                                          offset: Offset
+                                                              .fromDirection(3))
+                                                    ])),
+                                            actions: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(5),
+                                                child: CustomButton(
+                                                  onPressed: _showImagePicker,
+                                                  title: "Select Photo",
+                                                ),
+                                              ),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(5),
+                                                child: CustomButton(
+                                                    title: 'Upload',
+                                                    onPressed: () async {
+                                                      final path =
+                                                          'files/$_fileName';
+                                                      final ref =
+                                                          FirebaseStorage
+                                                              .instance
+                                                              .ref()
+                                                              .child(path);
+
+                                                      UploadTask uploadTask =
+                                                          ref.putData(
+                                                              _pickedFile!);
+                                                      uploadTask.snapshotEvents
+                                                          .listen(
+                                                              (taskSnapshot) {
+                                                        setState(() {
+                                                          _progress = ((taskSnapshot
+                                                                          .bytesTransferred
+                                                                          .toDouble() /
+                                                                      taskSnapshot
+                                                                          .totalBytes
+                                                                          .toDouble()) *
+                                                                  100.0)
+                                                              .roundToDouble();
+                                                        });
+                                                      });
+
+                                                      final snapshot =
+                                                          await uploadTask
+                                                              .whenComplete(
+                                                                  () {});
+                                                      _urlDownload =
+                                                          await snapshot.ref
+                                                              .getDownloadURL();
+
+                                                      // ignore: use_build_context_synchronously
+                                                      Navigator.pop(context);
+                                                      // ignore: use_build_context_synchronously
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                                  content: Text(
+                                                        "Successfully Uploaded",
+                                                        style: GoogleFonts
+                                                            .poppins(),
+                                                      )));
+                                                      return const CircularProgressIndicator();
+                                                    }),
+                                              ),
+                                              Container(
+                                                child: _progress > 0
+                                                    ? Text("$_progress%")
+                                                    : null,
+                                              ),
+                                              Stack(children: [
+                                                Center(
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10),
+                                                    alignment: Alignment.center,
+                                                    child:
+                                                        LinearProgressIndicator(
+                                                      value: _progress / 100,
+                                                      minHeight: 10,
+                                                      color: Colors.green,
+                                                      semanticsLabel:
+                                                          '$_progress%',
+                                                    ),
+                                                  ),
+                                                ),
+                                              ]),
+                                            ],
+                                          );
+                                        });
                                       }));
                                 }),
                           ))
@@ -297,7 +361,7 @@ class _CreatePage extends State<CreatePage> {
                                       onPressed: () async {
                                         final String name =
                                             _nameController.text;
-                                        final String? photoURL = urlDownload;
+                                        final String? photoURL = _urlDownload;
                                         final String description =
                                             _descriptionController.text;
                                         var uid = user!.uid;
@@ -318,7 +382,6 @@ class _CreatePage extends State<CreatePage> {
                                               "Isliked": isLiked,
                                             });
                                             _nameController.text = '';
-                                            _photoURLController = '';
                                             _descriptionController.text = '';
                                             t;
                                             _controller.text = '';
@@ -348,7 +411,7 @@ class _CreatePage extends State<CreatePage> {
     );
   }
 
-  Future<void> authSignOut() async {
+  Future<void> _authSignOut() async {
     await showDialog(
         useRootNavigator: true,
         useSafeArea: true,
@@ -370,50 +433,53 @@ class _CreatePage extends State<CreatePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Container(
-                        padding: EdgeInsets.only(bottom: 15),
+                        padding: const EdgeInsets.only(bottom: 15),
                         child: _userUid()),
                     Container(
-                      child: isLoading
-                          ? CircularProgressIndicator()
+                      child: _isLoading
+                          ? const CircularProgressIndicator()
                           : _signOutButton(),
                     )
                   ]),
             ),
           )));
         });
+    return;
   }
 
-  searchPhoto(String query) {
-    final photosList = photoList.where((AppGallery) {
+  void _searchPhoto(String query) {
+    final photosList = _photoList.where((AppGallery) {
       final photographername = AppGallery.photgrapherName.toLowerCase();
       final input = query.toLowerCase();
       return photographername.contains(input);
     }).toList();
 
-    setState(() => photos = photosList);
+    setState(() => _images = photosList);
+    return;
   }
 
-  _listPhoto() {
+  void _listPhoto() {
     _collection.listen((snapshots) {
-      photoList.clear();
+      _photoList.clear();
       snapshots.docs.forEach((document) {
         AppGallery photo = AppGallery.fromDocumentSnapshot(
             document as DocumentSnapshot<Map<String, dynamic>>);
 
-        photoList.add(photo);
+        _photoList.add(photo);
       });
       setState(() {
-        searchPhoto(query);
+        _searchPhoto(_query);
       });
     });
+    return;
   }
 
 //filter list
-  _filterFun() {
+  void _filterFun() {
     Query q = FirebaseFirestore.instance.collection("AppGallery");
 
-    if (unOrdDeepEq(filterList, item1)) {
-      if (unOrdDeepEq(filterList, item1)) {
+    if (_unOrdDeepEq(_filterList, _item1)) {
+      if (_unOrdDeepEq(_filterList, _item1)) {
         q = q.where(
           "Isliked",
         );
@@ -423,10 +489,10 @@ class _CreatePage extends State<CreatePage> {
         );
       }
     } else {
-      if (filterList.contains(SelectedList.liked)) {
+      if (_filterList.contains(SelectedList.liked)) {
         q = q.where("Isliked", isEqualTo: true);
       }
-      if (filterList.contains(SelectedList.unLiked)) {
+      if (_filterList.contains(SelectedList.unLiked)) {
         q = q.where('Isliked', isEqualTo: false);
       }
     }
@@ -435,6 +501,7 @@ class _CreatePage extends State<CreatePage> {
     q = q.where('AddedBy', isEqualTo: uid);
     _collection = q.snapshots();
     _listPhoto();
+    return;
   }
 
   Future<void> _update(AppGallery appGallery) async {
@@ -499,6 +566,7 @@ class _CreatePage extends State<CreatePage> {
             ],
           )));
         });
+    return;
   }
 
   @override
@@ -518,7 +586,7 @@ class _CreatePage extends State<CreatePage> {
                   height: 30,
                   width: 150,
                   child: TextField(
-                    onChanged: searchPhoto,
+                    onChanged: _searchPhoto,
                     controller: _controller,
                     decoration: InputDecoration(
                         hintText: "Search...",
@@ -532,7 +600,7 @@ class _CreatePage extends State<CreatePage> {
                           icon: const Icon(Icons.cancel_sharp),
                           onPressed: () {
                             _controller.clear();
-                            searchPhoto(query);
+                            _searchPhoto(_query);
 
                             FocusScope.of(context).requestFocus();
                           },
@@ -556,7 +624,7 @@ class _CreatePage extends State<CreatePage> {
                   )),
               PopupMenuButton(
                 itemBuilder: (context) {
-                  return items
+                  return _items
                       .map((e) =>
                           PopupMenuItem<String>(value: e, child: Text(e)))
                       .toList();
@@ -586,18 +654,18 @@ class _CreatePage extends State<CreatePage> {
               PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == SelectedList.all) {
-                      for (var i = 0; i < item1.length; i++) {
-                        if (filterList.contains(item1[i])) {
-                          filterList.remove(item1[i]);
+                      for (var i = 0; i < _item1.length; i++) {
+                        if (_filterList.contains(_item1[i])) {
+                          _filterList.remove(_item1[i]);
                         } else {
-                          filterList.add(item1[i]);
+                          _filterList.add(_item1[i]);
                         }
                       }
                     } else {
-                      if (filterList.contains(value)) {
-                        filterList.remove(value);
+                      if (_filterList.contains(value)) {
+                        _filterList.remove(value);
                       } else {
-                        filterList.add(value);
+                        _filterList.add(value);
                       }
                     }
                     _filterFun();
@@ -608,13 +676,13 @@ class _CreatePage extends State<CreatePage> {
                         const DeepCollectionEquality.unordered().equals;
                     return <PopupMenuEntry<String>>[
                       CheckedPopupMenuItem(
-                        checked: unOrdDeepEq(filterList, item1),
+                        checked: unOrdDeepEq(_filterList, _item1),
                         value: SelectedList.all,
                         child: Text(SelectedList.all),
                       ),
-                      ...item1
+                      ..._item1
                           .map((e) => CheckedPopupMenuItem(
-                                checked: filterList.contains(e),
+                                checked: _filterList.contains(e),
                                 value: e,
                                 child: Text(e),
                               ))
@@ -623,43 +691,41 @@ class _CreatePage extends State<CreatePage> {
                   })),
               IconButton(
                   onPressed: () {
-                    authSignOut();
+                    _authSignOut();
                   },
-                  icon: Icon(Icons.logout_outlined))
+                  icon: const Icon(Icons.logout_outlined))
             ],
           ),
           body: LayoutBuilder(
               builder: (BuildContext ctx, BoxConstraints constraints) {
-            return Container(
-              child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Container(
-                      alignment: Alignment.topCenter,
-                      margin: const EdgeInsets.all(25),
-                      child: Wrap(
-                        runSpacing: 20,
-                        spacing: 20,
-                        children: photos.map((photos) {
-                          DateTime date = photos.createdTime;
-                          //
-                          var formatedDate =
-                              DateFormat('dd MMMM, yyyy').format(date);
+            return SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Container(
+                    alignment: Alignment.topCenter,
+                    margin: const EdgeInsets.all(25),
+                    child: Wrap(
+                      runSpacing: 20,
+                      spacing: 20,
+                      children: _images.map((photos) {
+                        DateTime date = photos.createdTime;
+                        //
+                        var formatedDate =
+                            DateFormat('dd MMMM, yyyy').format(date);
 
-                          return CardWidget(
-                            photoGallery: photos,
-                            onDeletePressed: _deletePhoto,
-                            onLikePressed: _update,
-                            imageHeight: 200,
-                            imageWidth: constraints.maxWidth > 500
-                                ? 200
-                                : constraints.maxWidth,
-                            imageFit: StackFit.expand,
-                            boxFit: BoxFit.cover,
-                            formatTime: formatedDate,
-                          );
-                        }).toList(),
-                      ))),
-            );
+                        return CardWidget(
+                          photoGallery: photos,
+                          onDeletePressed: _deletePhoto,
+                          onLikePressed: _update,
+                          imageHeight: 200,
+                          imageWidth: constraints.maxWidth > 500
+                              ? 200
+                              : constraints.maxWidth,
+                          imageFit: StackFit.expand,
+                          boxFit: BoxFit.cover,
+                          formatTime: formatedDate,
+                        );
+                      }).toList(),
+                    )));
           }),
           floatingActionButton: FloatingActionButton(
             backgroundColor: Colors.orange,
